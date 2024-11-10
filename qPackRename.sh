@@ -72,8 +72,8 @@ Options:
                                directory name>)
     -d, --date-name         : Template 1 with no season/episode lookups. Fast.
     -f #                    : Format according to template # from samples
-    --show-samples          : Pick out some files and show sample output with
-                               template options (always dry run)
+    --show-samples          : Pick out random files and show sample output with
+                               all templates defined in the script (hint, hint)
 
     -h, --help              : Show this help message
 EOF
@@ -97,7 +97,6 @@ process_args() {
                 ;;
             -f)
                 shift
-                local templateKeys=("d" "d_e" "ssee" "sseee")
                 fmt="${templateKeys[$1]}"
                 if [[ -z "fmt" ]]; then
                     echo "Not a recognized format option \"$1\""
@@ -158,8 +157,6 @@ if [[ "$sample" == "1" ]]; then
 else
     rename_dir "$mediaDir" "$podcastName" "$dry" "$fmt"
 fi
-
-#echo rename_dir "$mediaDir" "$podcastName" "$dry" "$fmt"
 
 time_report $SECONDS
 exit 0

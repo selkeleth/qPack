@@ -97,7 +97,7 @@ choice_1_2() {
         if [[ -z "$default" ]]; then
             read -p "$prompt: " input
         else
-            read -p "$prompt [$default]: " input
+            read -p "$prompt yn[$default]: " input
             if [[ -z "$input" ]]; then
                 input="$default"
             fi
@@ -112,8 +112,6 @@ choice_1_2() {
 }
 
 # Usage: time_report <seconds>
-#
-# Prints a nicely formatted and professional report based on the number of seconds provided
 time_report() {
     secs="$1"
 

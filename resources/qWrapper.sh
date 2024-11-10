@@ -7,12 +7,6 @@ source "${scriptDir}/qTemplates.sh"
 
 set -e
 
-template_d="{podcastName} - {yyyymmdd} - {episodeTitle} [{YEAR}/MP3-{bitString}].mp3"
-template_d_e="{podcastName} - {yyyymmdd} - {Ennn}-{episodeTitle} [{YEAR}/MP3-{bitString}].mp3"
-template_ssee="{podcastName} - S{Snn}E{Enn} - {episodeTitle} [{YEAR}/MP3-{bitString}].mp3"
-template_sseee="{podcastName} - S{Snn}E{Ennn} - {episodeTitle} [{YEAR}/MP3-{bitString}].mp3"
-
-
 # Function to read a specific key from a section
 # Usage
 #savePath=$(get_config_value "Local" "savePath")

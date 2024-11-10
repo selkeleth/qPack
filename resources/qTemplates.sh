@@ -153,28 +153,9 @@ rename_dir() {
     for file in *.mp3; do
         # Check if already renamed
         if [[ $file =~ ^${podcastName}.*\[.*\].mp3$ ]]; then
-        #if [[ "$file" =~ "^${podcastName}\..*\[.*\]\.mp3$" ]]; then
             skipCount=$((skipCount + 1))
             continue
         fi
-        # if [[ "$nameSE" != "0" || $episodePrefix != "0" ]]; then
-        #     if [[ "$nameSE" == "1" ]]; then
-        #         fileSNN="S$(printf "%02d" $(mediainfo "$file" | grep "$seriesTag" | cut -c 44-99 | xargs | sed 's/^0*//'))"
-        #         if [[ "$fileSNN" == "S00" ]]; then
-        #             #touch "$errorLog"
-        #             echo "No season number for $file" >> "$errorLog"
-        #             errorCount=$((errorCount + 1))
-        #             continue
-        #         fi
-        #     fi
-        #     fileENNN="E$(printf "%03d" $(mediainfo "$file" | grep "$episodeTag" | cut -c 44-99 | xargs | sed 's/^0*//'))"
-        #     if [[ "$fileENNN" == "E000" ]]; then
-        #         #touch "$errorLog"
-        #         echo "No episode number for $file" >> "$errorLog"
-        #         errorCount=$((errorCount + 1))
-        #         continue
-        #     fi
-        # fi
 
         bitString=$(mediainfo "$file" | grep 'Bit\ rate\ \  ' | cut -c 44-99 | xargs | sed 's/\//p/')
         year=$(date -d "$(mediainfo "$file" | grep 'releasedate' | cut -c 44-59)" +%Y)
@@ -192,8 +173,7 @@ rename_dir() {
             # Rename the file, including the info we've already checked, and
             #   increment the counter if successful
             
-
-            # Loop through each placeholder in the template and populate the variables
+            # Loop through each placeholder in the template and populate the variables for this file
             for key in "${!templateVars[@]}"; do
                 if [[ $templateString == *"{$key}"* ]]; then
                     if [[ $(declare -F "${templateVars[$key]}") ]]; then
@@ -243,12 +223,12 @@ show_samples() {
     echo "Sample files:"
     mapfile -t mp3_files < <(ls *.mp3 | shuf -n 3)
     for file in "${mp3_files[@]}"; do
-        echo "Sample output for file \"$file\":"
+        echo "Sample output for file \"$file\" by template format index:"
         for i in "${!templateKeys[@]}"; do
             templateKey="${templateKeys[$i]}"
             sample_templateString=${templateFmts[$templateKey]}
             format_filename "$mediaDir" "$file" "$sample_templateString"
-            echo "$newFile (template index $i)"
+            echo "$i-> $newFile"
         done
         echo
     done
