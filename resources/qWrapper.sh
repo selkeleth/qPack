@@ -66,19 +66,3 @@ init_error_log() {
 
     echo $errorLog
 }
-
-function thumbDir() {
-    if [[ -f "cover.jpg" ]]; then
-            file="cover.jpg"
-    elif [[ -f "cover.png" ]]; then
-            file="cover.png"
-    fi
-    if [[ -z "$file" ]]; then
-            echo "thumbDir() Warning: No cover.jpg or cover.png found for thumbnail."
-            exit 1
-    else
-            convert "$file" -resize 600x600 "/media/bag/jeff/Downloads/Unwalled/cover-$(basename "$(pwd)")-1-1.jpg"
-            echo "/media/bag/jeff/Downloads/Unwalled/cover-$(basename "$(pwd)")-1-1.jpg"
-            exit 0
-    fi
-}
