@@ -10,9 +10,10 @@ Currently staged:
     --show-samples option before previewing full output. Use --dry-run with
     new shows. Show creators sometimes change metadata THEY populate.
 - Template framework that is friendly for adding templates
-- Template framework allowx key->value replacement with value that can
+- Template framework allow key->value replacement with value that can
     be retrieved via any CLI command, python, etc
 
+Synchronization to seedboxes is done via rsync. Please use ssh-copy-id or a similar tool so that rsync can bypass an interactive login.
 
 Audiobookshelf "duplicate" file warning:
 Audiobookshelf, when presented with a second publication of the same title, faces a filename collision. It avoids this by adding the guid as a suffix to subsequent episodes with a title that matches one already in the directory. 

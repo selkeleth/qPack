@@ -26,7 +26,13 @@ declare -A templateFmts=(
 #              0    1      2       3
 templateKeys=("d" "d_e" "ssee" "sseee")
 
-# *****************************
+# ****************************************************************************
+# init_config() imports library functions and populates variables that qPack
+#   uses as environment variables within. Each script serves as the primary
+#   subshell for its qPack tool into which the wrapper needs to be imported.
+# This allows qPack tools to have different implementations to suit different
+#   use cases
+# ****************************************************************************
 # 1. Source in qPack functions
 # 2. Populate variables from qPack configuration
 # 3. Populate variables from the environment
@@ -43,7 +49,7 @@ init_config() {
     # Grab the media path, if available, to allow for directory-only invokation
     mediaPath=$(get_config_value "Local" "mediaPath")
 
-    # List to hold any missing config tag ma,es
+    # List to hold any missing config tag names
     missingTags=()
 
     # Confirm that required config values are populated
@@ -64,6 +70,11 @@ init_config() {
 show_help() {
     cat << EOF
 qPackRename - part of the qPack toolset
+
+Renames files named {title}.mp3 into specified format template. 
+Looks up metadata using mediainfo with tags specified in qPackConfig.sh
+Run with --show-samples for options (maximize terminal first).
+Progress to -f # --dry-run to see full preview of new filenames.
 
 Usage: ${0##*/} [OPTIONS] <target directory of podcast mp3 files>
 Options:
@@ -99,7 +110,7 @@ process_args() {
             -f)
                 shift
                 fmt="${templateKeys[$1]}"
-                if [[ -z "fmt" ]]; then
+                if [[ -z "$fmt" ]]; then
                     echo "Not a recognized format option \"$1\""
                     sample="1"
                 fi
@@ -119,7 +130,7 @@ process_args() {
                     elif [[ -d "$mediaPath/$1" ]]; then
                         mediaDir="$mediaPath/$1"
                     else
-                        echo "ERRPR: Unknown option \'$1\' is also not a directory to target"
+                        echo "ERROR: Unknown option \'$1\' is also not a directory to target"
                         show_help
                         exit 1
                     fi

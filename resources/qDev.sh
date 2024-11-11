@@ -97,7 +97,7 @@ choice_1_2() {
         if [[ -z "$default" ]]; then
             read -p "$prompt: " input
         else
-            read -p "$prompt yn[$default]: " input
+            read -p "$prompt [$default]: " input
             if [[ -z "$input" ]]; then
                 input="$default"
             fi

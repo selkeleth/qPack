@@ -23,7 +23,8 @@ get_Ennn() { # The episode numbers in 3 digits, e.g. 001
 } 
 
 get_podcastName() {
-    mediainfo "$file" | grep "Album  " | cut -c 44-99 | sed 's/(subscriber edition)//' | xargs -0
+    name="$(mediainfo "$file" | grep "Album  " | cut -c 44-99 | sed 's/(subscriber edition)//')"
+    echo "$name" | xargs
 }
 
 get_episodeTitle() {

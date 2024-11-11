@@ -83,7 +83,7 @@ echo torrent client "watch" directory to automatically add to your torrent clien
 echo You can force-recheck and be ready to start your seed at the same time as you
 echo upload to the tracker.
 echo 
-thumbPath="$(read_absolute_path "Enter watch path" "$watchPath" 1 | tail -n 1)"
+local_watchPath="$(read_absolute_path "Enter watch path" "$watchPath" 1 | tail -n 1)"
 echo
 echo Thumbnails qPack makes when a source is available will be saved there unless you
 echo enter a different path below.
@@ -164,7 +164,6 @@ mediaPath = $mediaPath
 savePath = $savePath
 thumbPath = $thumbPath
 watchPath = $watchPath
-
 torrentDataPath = $torrentDataPath
 errorLogPath = $errorLogPath
 lnOrCp = $lnOrCp
