@@ -131,3 +131,33 @@ time_report() {
     fi
     exit 0
 }
+
+# Return appropriate piece length for mktorrent
+# Maintains mktorrent compatibility for older versions
+# Usage: get_piece_length <torrent data>
+# Returns: value for -l parameter to mktorrent
+get_piece_length() {
+    local target="$1"
+    local size_kb
+    size_kb=$(du -s "$target" | awk '{print $1}')
+
+    if (( size_kb <= 122000 )); then
+        echo 16   # 64 k
+    elif (( size_kb <= 213000 )); then
+        echo 17   # 128
+    elif (( size_kb <= 444000 )); then
+        echo 18   # 256
+    elif (( size_kb <= 922000 )); then
+        echo 19   # 512
+    elif (( size_kb <= 1870000 )); then
+        echo 20   # 1 MB
+    elif (( size_kb <= 3880000 )); then
+        echo 21   # 2
+    elif (( size_kb <= 6700000 )); then
+        echo 22   # 4
+    elif (( size_kb <= 13900000 )); then
+        echo 23   # 8
+    else
+        echo 24   # 16
+    fi
+}

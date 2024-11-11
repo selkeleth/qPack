@@ -43,6 +43,7 @@ default_mediaPath="$(get_config_value_d 'Local' 'mediaPath')"
 default_savePath="$HOME/qPack/output"
 savePath=$(get_config_value_d 'Local' 'savePath')
 default_savePath="${savePath:-$default_savePath}"
+default_watchPath="$(get_config_value_d 'Local', 'watchPath')"
 default_thumbPath="$(get_config_value_d 'Local' 'thumbPath')"
 default_torrentDataPath="$HOME/torrents/podcasts"
 torrentDataPath=$(get_config_value_d 'Local' 'torrentDataPath')
@@ -73,8 +74,16 @@ echo Enter the full path to your media files.
 echo Audiobookshelf users will find this in their podcast library settings
 mediaPath="$(read_absolute_path "Enter media path" "$default_mediaPath" | tail -n 1)"
 echo
-echo Enter the full path to the directory where qPack will save .torrent files
+echo Enter the full path to the directory where qPack will save thumbnails and 
+echo .torrent files. You can optionally add your client watch directory next.
 savePath="$(read_absolute_path "Enter save path" "$default_savePath" | tail -n 1)"
+echo
+echo qPack uses mktorrent to make .torrent files. Its files can be put into your
+echo torrent client "watch" directory to automatically add to your torrent client.
+echo You can force-recheck and be ready to start your seed at the same time as you
+echo upload to the tracker.
+echo 
+thumbPath="$(read_absolute_path "Enter watch path" "$watchPath" 1 | tail -n 1)"
 echo
 echo Thumbnails qPack makes when a source is available will be saved there unless you
 echo enter a different path below.
@@ -154,6 +163,7 @@ cat <<EOF > "$configFile"
 mediaPath = $mediaPath
 savePath = $savePath
 thumbPath = $thumbPath
+watchPath = $watchPath
 
 torrentDataPath = $torrentDataPath
 errorLogPath = $errorLogPath

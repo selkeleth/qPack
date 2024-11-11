@@ -23,6 +23,7 @@ declare -A templateFmts=(
 )
 
 # Indexed array of keys from templateFmts for numerical indexing
+#              0    1      2       3
 templateKeys=("d" "d_e" "ssee" "sseee")
 
 # *****************************
@@ -141,9 +142,9 @@ process_args "$@"
 echo \* Args processed
 
 if [[ ! -n $errorLog ]]; then
+    echo \* Setting errorLog
     init_error_log "$podcastName"
-    errorLog=$(echo $errorLog | tail -n 1)
-    echo \* Set errorLog $errorLog
+    errorLog="$(echo $errorLog | tail -n 1)"
 fi
 if [[ -z $errorLog ]]; then
     echo "Error initializing error log for $podcastName."

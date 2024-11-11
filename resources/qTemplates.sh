@@ -64,7 +64,7 @@ format_filename() {
     local year="$6"
 
     if [[ -z $dir || -z $file || -z $templateBlank ]]; then
-        echo "ERROR: format_filename() requires 3 parameters"
+        echo "ERROR: format_filename() requires 3 parameters" >&2
         if [[ ! -n $errorLog ]]; then
             touch $errorLog
             echo "ERROR: format_filename() requires 3 parameters" >> $errorLog
@@ -220,10 +220,10 @@ show_samples() {
         cd "$mediaDir"
     fi
     
-    echo "Sample files:"
+    echo "Picking a few random files for samples..."
     mapfile -t mp3_files < <(ls *.mp3 | shuf -n 3)
     for file in "${mp3_files[@]}"; do
-        echo "Sample output for file \"$file\" by template format index:"
+        echo "Sample output for file \"$file\" by template format # for -f # option:"
         for i in "${!templateKeys[@]}"; do
             templateKey="${templateKeys[$i]}"
             sample_templateString=${templateFmts[$templateKey]}
