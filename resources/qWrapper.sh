@@ -66,8 +66,4 @@ init_error_log() {
     fi
 
     echo $errorLog
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 5ea44a8 (Merge)
