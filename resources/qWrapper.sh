@@ -4,6 +4,7 @@ CONFIG_FILE="$HOME/.qPack_config"
 scriptDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${scriptDir}/qDev.sh"
 source "${scriptDir}/qTemplates.sh"
+source "${scriptDir}/qPackInfo.sh"
 
 set -e
 
@@ -37,6 +38,7 @@ init_error_log() {
         echo "Creating error log directory: ${errorLogPath}"
         echo "(debug, shouldn't have to make it)"
         exit 1
+        #echo "Creating error log directory: ${errorLogPath}"
         #mkdir -p "${errorLogPath}"
         # echo "Would you like to make it?"
         # read -p "y/n" yn
@@ -44,7 +46,6 @@ init_error_log() {
         #     mkdir -p "${errorLogPath}"
         # fi
     fi
-    #if [[ -n "$podcastName" || -z "$podcastName" ]]; then
     if [[ -z "$podcastName" ]]; then
         echo "Podcast title not set."
         exit 1
@@ -65,4 +66,8 @@ init_error_log() {
     fi
 
     echo $errorLog
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 5ea44a8 (Merge)
