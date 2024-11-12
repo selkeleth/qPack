@@ -20,17 +20,13 @@ function populate_year_arrays() {
         if [[ "$filename" =~ \[([0-9]{4})_MP3-([^\]]+)\] ]]; then
             year="${BASH_REMATCH[1]}"
             bitrateString="${BASH_REMATCH[2]}"
-
-            # Increase the file count for the year
-            ((year_filecount["$year"]++))
-
-            # Add the file size to the total size for the year
+            year_filecount[$year]=$((year_filecount[$year]+1))
             filesize=$(stat -c%s "$file")
-            ((year_filesize["$year"]+=filesize))
+            year_filesize[$year]=$((year_filesize[$year]+$filesize))
 
             # Increase the count for the bitrate string for the year
             bitrate_key="${year}|${bitrateString}"
-            ((year_bitrate_counts["$bitrate_key"]++))
+            year_bitrate_counts[$bitrate_key]=$((year_bitrate_counts[$bitrate_key]+1))
         else
             echo "Warning: Can't parse filename: $filename" >&2
             if [["$errorLog"!= ""]]; then
@@ -53,10 +49,10 @@ function populate_bitString() {
             IFS='|' read -r key_year bitrate <<< "$key"
             if [ "$key_year" == "$year" ]; then
                 count=${year_bitrate_counts["$key"]}
-                ((bitrate_totals["$bitrate"]+=count))
+                bitrate_totals[$bitrate]+=$((bitrate_totals[$bitrate]+=$count))
                 if [ "$count" -gt "$max_count" ]; then
                     max_count=$count
-                    common_bitrate=$bitrate
+                    common_bitrate="$bitrate"
                 fi
             fi
         done
@@ -65,4 +61,24 @@ function populate_bitString() {
         bitPercentage=$(awk "BEGIN { if ($total_files > 0) printf \"%.2f\", ($max_count/$total_files)*100; else print \"0.00\" }")
     done
     
+}
+
+# Screen a directory, ensuring that mp3's have the year and bitrate
+#
+function screen_directory_names() {
+    mediaDir="$1"
+    skipCount=0
+
+    while IFS= read -r -d '' file; do
+        filename="$(basename "$file")"
+
+        # Make sure the filenames matches for a year and a spot for a bitrateString
+        if [[ ! "$filename" =~ \[([0-9]{4})_MP3-([^\]]+)\] ]]; then
+            echo "Warning: Not expected format"
+            echo $filename > /dev/tty
+            skipCount=$((skipCount + 1))
+        fi
+    done < <(find "$mediaDir" -type f -name '*.mp3' -print0)
+
+    echo $skipCount
 }

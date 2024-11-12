@@ -39,7 +39,7 @@ init_error_log() {
         exit 1
     fi
     if [[ -z "$logName" ]]; then
-        echo "qWrapper: Log name not set." 1>&2
+        echo "qWrapper: init_error_log()- called without a log name" 1>&2
         exit 1
     else
         errorLog="${errorLogPath}/error-${logName}.log"
@@ -60,6 +60,7 @@ init_error_log() {
     echo $errorLog
 }
 
+# Populates the 
 
 # Create a torrent with the given target, target and title, or target, title, and announceUrl
 #

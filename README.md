@@ -18,6 +18,22 @@ Currently staged:
 - Template framework allow key->value replacement with value that can
     be retrieved via any CLI command, python, etc
 
+Next up:
+    Staging updates of the qPack.sh file itself, beginning with rudimentary
+    function, as I clean up scripts that do these tasks specific to my
+    environment. 
+
+- qPack: A script that works on a target directory with files that have the
+    metadata in the filenames that templates look up from the file. Instead of
+    automatically targeting the full directory, it provides options for annual
+    torrents, a YTD torrent, and all-prior years to set up a complete history
+    that allows for annual packs moving forward. It can be invoked without any
+    arguments for a fully interactive mode or with a list of arguments for
+    complete CLI automation for advanced users. When an option is selected,
+    qPack will create the torrent directory, hardlink (or copy) files to it
+
+
+
 Synchronization to seedboxes is done via rsync. Please use ssh-copy-id or a similar tool so that rsync can bypass an interactive login.
 
 Audiobookshelf "duplicate" file warning:
@@ -25,7 +41,6 @@ Audiobookshelf, when presented with a second publication of the same title, face
 The title being a duplicate does not mean the episode is. Some podcasts publish multiple episodes with the same title. One example I ran across was when Freakonomics did a 5-year-later update on an episode. Audiobookshelf was unable to use its normal title.mp3 so appended an id suffix. Unfortunately, the script does not (yet?) remove this suffix, but it should be possible to test for with reasonable confidence with a regex. The reason I have not done is that I have also seen this behavior when a podcast episode is re-uploaded with a very minor change hours after it was first published without removing the first episode from the RSS feed. I letting them stick out because I'm checking them out on a case-by-case basis. It's usually a matter of removing the suffix and letting the date speak for itself because the title was reused.
 
 Installation and usage:
-
 1. Clone this git
 2. Execute qPackConfig.sh
 3. Maximize your terminal and try qPackRename.sh --show-samples "Some Audiobookshelf Podcast folder"
@@ -33,3 +48,5 @@ Installation and usage:
 5. Run qPackRename without --dry-run when you are satisfied.
 6. Rinse and repeat from step 3 or 4, always beginning with --dry-run only
 
+Advanced usage:
+qPack has been designed so that main directory .sh files set up an environment and import the operational functions from resources/qWrapper.sh. If so inclined, you can source the resources/qWrapper.sh yourself from the command line and access the operational functions directly or create your own scripts to do so. For instance, you may want the convenience of "sync_to <local_target> <remote_location>" as shorthand for "rsync -azh <local_target> <seedUser>@<seedServer>:<remote_location>", or "sync_to <.torrent> 1" to add any .torrent to your seedbox watch directory. 

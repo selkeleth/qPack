@@ -11,21 +11,23 @@ get_ntfs_safe() {
 
 # Usage: is_absolute_path <path>
 #
-# Returns 1 if true, 0 if false. Accepts home directory.
+# Returns 1 if true, 0 if false. Needs work so it ~~Accepts home directory.~~
 is_absolute_path() {
     input="$1"
-    if [[ "${input:0:1}" == "/" || "${input:0:1}" == "~" ]]; then
+    #if [[ "${input:0:1}" == "/" || "${input:0:1}" == "~" ]]; then # the ~ is not expanding in cd "$a" when a="~" :-/
+    # should be able to find a way to use it though
+    if [[ "${input:0:1}" == "/" ]]; then
         echo 1
     else
         echo 0
     fi
 }
 
-# Usage: read_absolute_path <prompt> <default> <optional>
+# Usage: read_absolute_path <prompt> <default> [optional]
 # 
 # <prompt> is passed as -p to read
 # <default> is put in [] and returned if the user enters nothing
-# <optional> is 1 if the user can enter nothing
+# [optional] is 1 if the user can enter nothing, defaults to required
 #
 # Returns the absolute path entered by the user
 # Repeats until the user enters a valid absolute path
@@ -42,6 +44,7 @@ read_absolute_path() {
                 input="$default"
             fi
         fi
+        input=$(echo "$input" | sed 's/^"//;s/"$//')
         if [[ $( is_absolute_path "$input" ) == "1" ]]; then
             echo "$input"
             break
@@ -50,6 +53,54 @@ read_absolute_path() {
             break
         fi
         echo "Not an absolute path, e.g. /home/user/dir"
+    done
+}
+
+# Usage: read_relative_path <prompt> <startDir> [optional]
+#
+# <prompt> is passed as -p to read
+# <startDir> is used in pushd "$startDir" > /dev/null || return so that the
+#   user can begin auto-completion from a provided directory
+# [optional] is "1" if the user can enter nothing, defaults to required
+read_relative_path() {
+    prompt="$1"
+    startDir="$2"
+    optional="$3"
+    while true; do
+        if [[ -z "$startDir" ]]; then
+            read -e -p "$prompt: " input
+            input=${input%/}
+            input=$(echo "$input" | sed 's/^"//;s/"$//')
+        else
+            # We'll use pushd and pop so that tab completion happens in the
+            # context of the specified start directory
+            pushd "$startDir" > /dev/null || return
+            echo Tab completion from "$(pwd)" enabled > /dev/tty
+            read -e -p "$prompt: " input
+            # must remove trailing slash first, if present
+            input=${input%/} 
+            # then quotes, if present, so we can check it with realpath
+            input=$(echo "$input" | sed 's/^"//;s/"$//') 
+            if [[ "$( is_absolute_path "$input" )" == "1" ]]; then
+                input="$( cd "$input" && pwd )"
+            elif [[ -d "$(realpath "$torrentDataPath/$input")" ]]; then # it is relative to the pushd $startDir
+                echo input=$(cd "$(realpath "$torrentDataPath/$input")" && pwd)
+                input=$(cd "$(realpath "$torrentDataPath/$input")" && pwd)
+            fi            
+            popd > /dev/null || return
+        fi
+        if [[ -d "$input" ]]; then
+            echo "$input"
+            exit 0
+        fi
+        if  [[ "$optional" == "1" && -z "$input"  ]]; then
+            echo ""
+            exit 0
+        elif [[ -z "$input" ]]; then
+            echo "Please specify a directory to target"
+        else
+            echo "Not a valid path \"$input\""
+        fi
     done
 }
 
@@ -111,6 +162,7 @@ choice_1_2() {
     echo $input
 }
 
+# Prints a time summary (silent if < 10 seconds)
 # Usage: time_report <seconds>
 time_report() {
     secs="$1"
@@ -120,13 +172,13 @@ time_report() {
         if [[ $min  -gt 60 ]]; then
             hours=$(($mins / 60))
             mins=$(($mins % 60))
-            echo "Total time: $hours:$mins:$secs"
+            echo "Total time: $hours:$mins:$secs" > /dev/tty
         else
-            echo "Total time: $mins:$secs"
+            echo "Total time: $mins:$secs" > /dev/tty
         fi
     else
         if [[ $sec -gt 9 ]]; then
-            echo "Done in $secs seconds"
+            echo "Done in $secs seconds" > /dev/tty
         fi
     fi
     exit 0

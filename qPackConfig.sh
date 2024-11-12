@@ -191,7 +191,6 @@ announceUrl = $announceUrl
 seriesTag = $seriesTag
 episodeTag = $episodeTag
 dateTag = $dateTag
-
 EOF
 
 cat <<EOF
@@ -203,8 +202,15 @@ qPack is ready to run!
 
 There are also a number of useful CLI tools available. 
 
-To see your CLI options, run:
-qPack --advanced-help
+Currently staged tools are:
+    - qPackRename.sh (rename files in a directory, no un-do!)
+    - qPackTorSync.sh (create torrent, sync to seedbox, put .torrents
+        in local and/or seedbox client watch directories)
+
+As a next step, try ./qPackRename.sh --show-samples on a directory
+of podcast files. Always test with --dry-run to see full output
+before running qPackRename.sh on a full directory to confirm what you
+see is what you want. **There is no undo**
 
 You can re-run qPackConfig or edit ~/.qPack_config directly
 EOF

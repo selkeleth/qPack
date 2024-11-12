@@ -20,7 +20,7 @@ Usage: ${0##*/} [OPTIONS] <local_target> [remote_dir]
              (defaults to the seedbox directory set in qPackConfig)
 
 Options:
-
+    -n <name>               : Specify torrent name (defaults to target basename)
     -h, --help              : Show this help message
 EOF
 }
@@ -43,8 +43,6 @@ init_config() {
     torrentDataPath=$(get_config_value "Local" "torrentDataPath")
     errorLogPath=$(get_config_value "Local" "errorLogPath")
     local_watchPath=$(get_config_value "Local" "watchPath")
-    lnOrCp=$(get_config_value "Local" "lnOrCp")
-    src="Unwalled"
     announceUrl=$(get_config_value "Tracker" "announceUrl")
     seedUser=$(get_config_value "Seedbox" "seedUser")
     seedPath=$(get_config_value "Seedbox" "seedPath")
@@ -73,8 +71,13 @@ process_args() {
     fi
     target=""
     podcastName=""
+    torrentName=""
     while [[ $# -gt 0 ]]; do
         case $1 in
+            -n)
+                torrentName="$2"
+                shift
+                ;;
             -h | -\? | --help)
                 show_help
                 exit 0
@@ -138,7 +141,7 @@ if [[ -z $errorLog ]]; then
 fi
 echo "* Done."
 echo
-file=$(create_torrent "$target")
+file=$(create_torrent "$target" "$torrentName")
 file=$(echo $file | tail -n 1)
 # Check if the function succeeded and use the result
 if [[ $? -eq 0 ]]; then
