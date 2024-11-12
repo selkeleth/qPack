@@ -50,6 +50,8 @@ torrentDataPath=$(get_config_value_d 'Local' 'torrentDataPath')
 default_torrentDataPath=${torrentDataPath:-$default_torrentDataPath}
 default_lnOrCp=$(get_config_value_d 'Local' 'lnOrCp')
 default_errorLogPath="$HOME/qPack/"
+errorLog=$(get_config_value_d 'Local' 'errorLog')
+default_errorLogPath=${errorLog:-$default_errorLogPath}
 
 default_seedUser="$(get_config_value_d 'Seedbox' 'seedUser')"
 default_seedServer="$(get_config_value_d 'Seedbox' 'seedServer')"
@@ -117,6 +119,7 @@ echo
 echo "If you are not a seedbox user, leave blank to skip."
 echo "If you have an existing configuration to delete, enter * instead of enter"
 seedUser=$(read_d "Seedbox username" "$default_seedUser" | tail -n 1)
+echo
 
 if [[ -n "$seedUser" ]]; then
     if [[ "$seedUser" == "*" ]]; then
@@ -128,8 +131,10 @@ if [[ -n "$seedUser" ]]; then
         seedServer=$(read_d "Server FQDN" "$default_seedServer" | tail -n 1)
         echo
         seedPath="$(read_absolute_path "Seedbox data folder" "$default_seedPath" | tail -n 1)"
+        echo
         echo "If you would like the .torrent file put into a client watch directory, enter the full path to that directory below."
-        watchPath="$(read_absolute_path "Watch directory" "$default_watchPath" 1 | tail -n 1)"
+        seedbox_watchPath="$(read_absolute_path "Watch directory" "$default_watchPath" 1 | tail -n 1)"
+        echo
     fi
 fi
 
@@ -137,6 +142,7 @@ echo
 echo "Paste in your personal announce URL. This is on your upload page"
 echo "It will be something like https://trackerurl.eq/announce/secret-key"
 announceUrl="$(read_d "Announce URL" "$default_announceUrl" | tail -n 1)"
+echo
 
 echo
 echo "You can customize where mediainfo should look for particular metadata here."
@@ -145,8 +151,11 @@ echo "If your season, episode, or release dates are not pulling, this may be why
 echo "Run mediainfo on a file to browse what tags are available."
 echo
 seriesTag="$(read_d "Series tag" "$default_seriesTag" | tail -n 1)"
+echo
 episodeTag="$(read_d "Episode tag" "$default_episodeTag" | tail -n 1)"
+echo
 dateTag="$(read_d "Release date tag" "$default_dateTag" | tail -n 1)"
+echo
 
 # Remove any trailing / from the path inputs
 mediaPath="${mediaPath%/}"
@@ -163,7 +172,7 @@ cat <<EOF > "$configFile"
 mediaPath = $mediaPath
 savePath = $savePath
 thumbPath = $thumbPath
-watchPath = $watchPath
+watchPath = $local_watchPath
 torrentDataPath = $torrentDataPath
 errorLogPath = $errorLogPath
 lnOrCp = $lnOrCp
@@ -173,7 +182,7 @@ replacementChar = $replacementChar
 seedUser = $seedUser
 seedServer = $seedServer
 seedPath = $seedPath
-watchPath = $watchPath
+watchPath = $seedbox_watchPath
 
 [Tracker]
 announceUrl = $announceUrl
