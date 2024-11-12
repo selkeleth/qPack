@@ -9,6 +9,11 @@ Currently staged:
     very friendly for adding and changing naming templates. Check out the
     --show-samples option before previewing full output. Use --dry-run with
     new shows. Show creators sometimes change metadata THEY populate.
+- qTorSync: A straightforward implementation of the libraries that allow
+    qPack to make torrents with the user's configuration, save a useable 
+    .torrent file in the save path, optionally the watch path, and optionally
+    will sync to the seedbox (and optionally put the .torrent in the seedbox's
+    client's .torrent watch directory). 
 - Template framework that is friendly for adding templates
 - Template framework allow key->value replacement with value that can
     be retrieved via any CLI command, python, etc
