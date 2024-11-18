@@ -1,4 +1,4 @@
-This is pre-release staging of qPack code. Use with extreme caution!
+This is pre-release staging of qPack code. Use with extreme caution! Features may be under development at any time. 
 
 qPack is a set of tools designed for Audiobookshelf users who are comfortable on the Linux CLI. It currently makes no attempt to retrieve descriptions or any other information except what it assumes from Audiobookshelf's behavior.  There are some ways to tweak settings for some other users.
 
@@ -18,22 +18,6 @@ Currently staged:
 - Template framework allow key->value replacement with value that can
     be retrieved via any CLI command, python, etc
 
-Next up:
-    Staging updates of the qPack.sh file itself, beginning with rudimentary
-    function, as I clean up scripts that do these tasks specific to my
-    environment. 
-
-- qPack: A script that works on a target directory with files that have the
-    metadata in the filenames that templates look up from the file. Instead of
-    automatically targeting the full directory, it provides options for annual
-    torrents, a YTD torrent, and all-prior years to set up a complete history
-    that allows for annual packs moving forward. It can be invoked without any
-    arguments for a fully interactive mode or with a list of arguments for
-    complete CLI automation for advanced users. When an option is selected,
-    qPack will create the torrent directory, hardlink (or copy) files to it
-
-
-
 Synchronization to seedboxes is done via rsync. Please use ssh-copy-id or a similar tool so that rsync can bypass an interactive login.
 
 Audiobookshelf "duplicate" file warning:
@@ -50,3 +34,36 @@ Installation and usage:
 
 Advanced usage:
 qPack has been designed so that main directory .sh files set up an environment and import the operational functions from resources/qWrapper.sh. If so inclined, you can source the resources/qWrapper.sh yourself from the command line and access the operational functions directly or create your own scripts to do so. For instance, you may want the convenience of "sync_to <local_target> <remote_location>" as shorthand for "rsync -azh <local_target> <seedUser>@<seedServer>:<remote_location>", or "sync_to <.torrent> 1" to add any .torrent to your seedbox watch directory. 
+
+
+Next up:
+    Staging updates of the qPack.sh file itself, beginning with rudimentary
+    function, as I clean up scripts that do these tasks specific to my
+    environment. Here is the eventual script description as well as steps to
+    manifest that from the initial pre-release commit of the script.
+
+- qPack.sh: A script that works on a target directory with files that have the
+    metadata in the filenames that templates look up from the file. Instead of
+    automatically targeting the full directory, it provides options for annual
+    torrents, a YTD torrent, and all-prior years to set up a complete history
+    that allows for annual packs moving forward. It can be invoked without any
+    arguments for a fully interactive mode or with a list of arguments for
+    complete CLI automation for advanced users. When an option is selected,
+    qPack will create the torrent directory, hardlink (or copy) files to it
+- Implement more functionality into qPack, such as renaming files or offering
+    to run qPackConfig if no config file exists. 
+- Implement CLI parameters for "nextJob" options for automated usage
+- Implement quality of life options, such as creating the directories only so
+    that manual tweaks such as changing directory names won't have to be
+    repeated on the seedbox as well as making new .torrent files.
+- Allow changing of the mediaDir from the qPack menu
+- Have the "nextJob" loop create a job queue instead of executing on each
+    selection.
+- Add a CLI option to read a file with a list of CLI parameters that amount
+    to a list of "nextJob" commands, allowing for automated execution of
+    batch jobs.
+- Explore options for automated description generation using qTemplates, an
+    API integration, metadata, etc. 
+- Track first/last episode and other information to add template fields
+- Templates for directory names, allow first/last episode in annual packs to
+    automatically create

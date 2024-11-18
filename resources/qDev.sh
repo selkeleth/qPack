@@ -213,3 +213,24 @@ get_piece_length() {
         echo 24   # 16
     fi
 }
+
+# Because sometimes users say 2019-2022 instead of 2019 2022
+set_y1_y2() {
+    local input="$1"
+    y1=""
+    y2=""
+
+    # Check if the input contains a hyphen, indicating a range
+    if [[ "$input" == *-* ]]; then
+        # Split the input on the hyphen
+        y1="${input%-*}"
+        y2="${input#*-}"
+
+        # Alternatively use IFS and read
+        # IFS='-' read -r y1 y2 <<< "$input"
+    else
+        # Assign directly if input is separate arguments
+        y1="$input"
+        y2="$2"
+    fi
+}

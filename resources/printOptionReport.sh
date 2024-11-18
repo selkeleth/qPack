@@ -47,7 +47,8 @@ while IFS= read -r -d '' file; do
     fi
 done < <(find "$mediaDir" -type f -name '*.mp3' -print0)
 
-echo "=== Annual Archive ==="
+echo "=== Option 3 === Annual Archive ==="
+echo "Generally not recommended - One catch-up torrent is usually reasonable size"
 printf "%-10s %-10s %-15s %-25s %-10s\n" "Year" "Files" "Total Size" "Most Common Bitrate" "Percentage"
 
 total_files_all=0
@@ -83,14 +84,15 @@ for year in "${!year_filecount[@]}"; do
     readable_size=$(numfmt --to=iec --suffix=B --format="%.2f" "$total_size")
     
     # Accumulate data for sorting later
-    annual_data+=( "$(printf "%s %s %s %s %s" "$year" "$total_files" "$readable_size" "$common_bitrate" "${percentage}%")" )
+    annual_data+=( "$(printf "%-10s %-10s %-15s %-25s %-10s\n" "$year" "$total_files" "$readable_size" "$common_bitrate" "${percentage}%")" )
 done
 
 # Sort and print annual data
 IFS=$'\n' sorted_annual_data=($(sort <<<"${annual_data[*]}"))
 printf "%s\n" "${sorted_annual_data[@]}"
 
-echo "=== Single Archive ==="
+echo "=== Option 2 === Single Archive ==="
+echo "Single torrent, e.g. for a complete archive of an ended show"
 if [ "$total_files_all" -gt 0 ]; then
     common_total_bitrate=""
     common_total_count=0
@@ -108,7 +110,8 @@ else
 fi
 
 if [[ "${year_filecount["$current_year"]}" ]]; then
-    echo "=== YTD + Archive ==="
+    echo "=== Option 1 === YTD + Archive ==="
+    echo "Creates a 'Catch-up' archive Torrent and a YTD for recent episodes"
     
     # YTD Section
     ytd_files=${year_filecount["$current_year"]}
