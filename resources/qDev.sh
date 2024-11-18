@@ -234,3 +234,41 @@ set_y1_y2() {
         y2="$2"
     fi
 }
+
+# Makes a 600x600 jpg thumbnail if there is a cover.jpg or cover.png available
+# $1 - target directory
+# $2 - save path
+# $3 - thumbnail path (optional override of save path)
+make_thumb() {
+    local target_directory="$1"
+    local savePath="$2"
+    local thumbPath="$3"
+    local cover
+
+    if [[ -z "$target_directory" ]]; then
+        echo "No target directory specified" 1>&2
+        exit 1
+    fi
+    if [[ -z "$savePath" ]]; then
+        echo "No save path specified" 1>&2
+        exit 1
+    fi
+
+    if [[ -f "$target_directory/cover.jpg" ]]; then
+        cover="cover.jpg"
+    elif [[ -f "$target_directory/cover.png" ]]; then
+        cover="cover.png"
+    else
+        cover=""
+    fi
+
+    if [[ ! -z "$cover" ]]; then # make a thumb in the thumb / save path
+        if [[ -z "$thumbPath" ]]; then
+            convert "$target_directory/$cover" -resize 600x600 "$savePath/cover-$(basename "${target_directory}")-1-1.jpg"
+            echo "$savePath/cover-$(basename "${target_directory}")-1-1.jpg"
+        else
+            convert "$target_directory/$cover" -resize 600x600 "$thumbPath/cover-$(basename "${target_directory}")-1-1.jpg"
+            echo "$thumbPath/cover-$(basename "${target_directory}")-1-1.jpg"
+        fi
+    fi
+}

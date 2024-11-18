@@ -35,7 +35,8 @@ show_menu() {
     cat << EOF
 
 Select an option:
-p               : Print an options report
+thumb           : Save a thumbnail for the working directory
+p               : Print a torrent options report for "o <#>"
 o <#>           : Pack per option #
                     1) One YTD torrent, one torrent for prior years
                     2) One torrent for all years
@@ -71,6 +72,9 @@ read_next_job() {
     i3=${i3:=""}
 
     case $i1 in
+        "thumb" )
+            nextJob="--thumb "$savePath" "$thumbPath""
+            ;;
         p )
             local resourceDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"/resources
             "$resourceDir"/printOptionReport.sh "$sourceDir"
@@ -79,7 +83,6 @@ read_next_job() {
         o )
            packOption="$i2"
             if [[ ! -z "$packOption" ]]; then
-                shift
                 nextJob="-o $packOption"
             else
                 echo "o option must be followed by option number"
@@ -129,7 +132,7 @@ read_next_job() {
             ;;
     esac
 
-    echo $nextJob
+    #echo $nextJob
 }
 
 # *****************************
@@ -244,8 +247,8 @@ EOF
     fi
     echo You may proceed if you want qPack to ignore the listed files.
     read -p "Would you like to continue? [Yn] : " yn
-    if [[ $yn != "n" && $yn != "N" ]]; then
-        exit 1
+    if [[ $yn == "n" || $yn == "N" ]]; then
+        exit 0
     fi
 fi
 

@@ -158,8 +158,9 @@ sync_to() {
 # Requires arrays to be set by the calling scope
 format_dirName() {
     local target_directory="$1"
-    yearList="$2"
-    local upTo="$3"
+    local upTo="$2"
+    yearList="$3"
+
     if [[ -z "$yearList" ]]; then # do all the years
         yearList="${!year_filecount[@]}"
     fi
@@ -193,7 +194,7 @@ format_dirName() {
 
     current_year=$(date +%Y)
 
-    if [[ -z "$upTo" || ( "$current_year" != "$minYear" && "$current_year" != "$maxYear" ) ]]; then
+    if [[ -z "$upTo" || "$upTo" == "0" || ( "$current_year" != "$minYear" && "$current_year" != "$maxYear" ) ]]; then
         local name="${podcastName} [${yearString}_MP3-${bitString}]"
     else # we should label the directory/torrent that it's the current year up to the latest episode's mm.dd
         # Extract dates in YYYY.MM.DD format
@@ -213,6 +214,106 @@ format_dirName() {
     fi
     
     dirName=$name
+}
+
+# Usage: qPackIt <target_directory> <torrentDataPath> <lnOrCp> <upTo> <yearList>
+# 
+# upTo, I'm ashamed to say, is used as a flag for whether to pack the torrent
+#   using the upTo format. Someday it should be a template for the upTo! For now
+#   set it to zero (or blank) to prevent YTD "up to" date and anything else 
+#   for a created torrent of the current year to list the release date of the 
+#   most recent episode in the directory targeted.
+#
+qPackIt() {
+    local target_directory="$1"
+    if [[ -z "$torrentDataPath" ]]; then
+        torrentDataPath="$2"
+    fi
+    if [[ -z "$lnOrCp" ]]; then
+        lnOrCp="$3"
+    fi
+    upTo="$4"
+    yearList="$5"
+    if [[ -z "$yearList" ]]; then # no parameter = do all the years
+        yearList="${!year_filecount[@]}"
+    else # validate it
+        for y in $yearList; do # check every year
+            if [[ -z $(find "$target_directory" -type f -name "*[$y*") ]]; then # if it's not in the directory
+                yearList="$(echo $yearList | sed -E "s/$y//")" # it shouldn't be in the list
+            fi
+        done
+    fi
+    local y1
+    local y2
+    
+    # Set up the target directory
+    if [[ ! -d "$target_directory" ]]; then
+        echo "Directory target for source data does not exist: $target_directory"
+        exit 1
+    fi
+
+    # Set up the torrentDataPath
+    if [[ ! -d "$torrentDataPath" ]]; then
+        echo "Torrent data path does not exist: $torrentDataPath"
+        exit 1
+    fi
+
+    echo "* qPack year(s) : $yearList"
+    populate_bitString "$target_directory" "$yearList"
+    format_dirName "$target_directory" "0" "$yearList"
+    mkdir "$torrentDataPath/$dirName"
+    if [[ ! -d "$torrentDataPath/$dirName" ]]; then
+        echo "Failed to create directory: $torrentDataPath/$dirName" 1>&2
+        exit 1
+    fi
+    if [[ -f "$target_directory/cover.jpg" ]]; then
+        cover="cover.jpg"
+    elif [[ -f "$target_directory/cover.png" ]]; then
+        cover="cover.png"
+    else
+        cover=""
+    fi
+
+    if [[ $lnOrCp == "1" ]]; then
+        if [[ ! -z "$cover" ]]; then 
+            ln "$target_directory/$cover" "$torrentDataPath/$dirName/"
+        fi
+        for year in $yearList; do
+            ln "$target_directory"/*[${year}* "$torrentDataPath/$dirName/"
+        done
+    else
+        if [[ ! -z "$cover" ]]; then 
+            cp "$target_directory/$cover" "$torrentDataPath/$dirName/"
+        fi
+        for year in $yearList; do
+            cp "$target_directory"/*[${year}* "$torrentDataPath/$dirName/"
+        done
+    fi
+
+    target="$(realpath "$torrentDataPath"/"$dirName")"
+    echo "* Creating torrent"
+    file=$(create_torrent "$target" "$dirName")
+    file=$(echo $file | tail -n 1)
+    # Check if the function succeeded and use the result
+    if [[ $? -eq 0 ]]; then
+        echo "* Saved $file"
+        if [[ $local_watchPath != "" ]]; then # save another copy to the local watch path
+            cp "$file" "$local_watchPath"
+            echo "* Added .torrent to local client via watch path"
+        fi
+    else
+        echo "Error creating torrent." 1>&2
+    fi
+    if [[ $seedUser != ""  ]]; then # sync the torrent data to the user's seedbox
+        echo "* Sending torrent data to seedbox"
+        sync_to "$torrentDataPath/$dirName"
+        if [[ $seed_watchPath != "" ]]; then # sync the .torrent file to the user's seedbox's client's watch directory
+            echo "* Adding to seedbox torrent client via watch path"
+            sync_to "$file" "1"
+        fi
+    fi
+
+    echo "* Completed: $dirName"
 }
 
 # Execute a job given qPack parameters
@@ -236,24 +337,32 @@ execute_job() {
     local jobString="$2"
 
     # parse jobString parameters
+    jobString=$(echo "$jobString" | sed 's/[<>&|;\\]//g')
     eval set -- "$jobString"
 
     local job="$1"
 
-    # Parse job-dependent arguments
+    # Different jobs require different arguments to execute
+    # The first step is to eval the jobString for its arguments and populate
+    # the variables with the values.
+    # The second step is to run the appropriate functions for the given job
+    # using these parameters
+
+    # This case statement is step 1 - set the appropriate parameters for a
+    # given job into sensible variable names. 
     case "$job" in
         "-t1" | "-ta" )
             local y1="$2"
             local y2="$3"
             if [[ -z "$y1" || -z "$y2" ]]; then
-                if [[ -z "$y2" ]]; then
+                if [[ -z "$y2" ]]; then # there's no y2, do y1 only
                     yearList="$y1"
                 else # do all the years
                     yearList="${!year_filecount[@]}"
                 fi
-            elif [[ ! -z "$(seq $y1 $y2)" ]]; then 
+            elif [[ ! -z "$(seq $y1 $y2)" ]]; then # y2 > y1, they're valid numbers, etc
                 yearList="$(seq $y1 $y2 | tr "\n" " ")"
-            elif [[ ! -z "$(seq $y2 $y1)" ]]; then
+            elif [[ ! -z "$(seq $y2 $y1)" ]]; then # the user put dates in "reverse" order
                 yearList="$(echo "$(seq $y2 $y1)")"
             else
                 echo qWrapper.sh: Internal error processing "$job" in execute_job\(\) "$y1" "$y2" 1>&2
@@ -266,113 +375,85 @@ execute_job() {
         "-p" ) # Print options report
             "$scriptDir/printOptionsReport.sh" "$target_directory"
             ;;
+        "--thumb" ) # make thumbnail for directory
+            savePath="$2"
+            thumbPath="$3"
+            ;;
         *)
             echo qWrapper.sh: "$job" not implemented. 1>&2
             ;;
     esac
+    
 
-    # Execute job
+    # This is step 2, execution of the job itself using the parameters in
+    # jobString that were just parsed into sensible variable names
     case "$job" in
-        "-t1" | "-ta" )
+        "--thumb" )
+            thumbFile="$(make_thumb "$target_directory" "$savePath" "$thumbPath")"
+            echo "* $thumbFile"
+            ;;
+        #  We'll  handle the t(orrent) "single" (1) and "(a)nnual" commands together
+        "-t1" | "-ta" ) 
             dirName=""
-            if [[ -f "$target_directory/cover.jpg" ]]; then
-                cover="cover.jpg"
-            elif [[ -f "$target_directory/cover.png" ]]; then
-                cover="cover.png"
-            else
-                cover=""
-            fi
-            if [[ ! -z "$cover" ]]; then # make a thumb in the thumb / save path
-                if [[ -z "$thumbPath" ]]; then
-                    convert "$target_directory/$cover" -resize 600x600 "$savePath/cover-$(basename "$(pwd)")-1-1.jpg"
-                else
-                    convert "$target_directory/$cover" -resize 600x600 "$thumbPath/cover-$(basename "$(pwd)")-1-1.jpg"
-                fi
-            fi
+            thumbFile="$(make_thumb "$target_directory" "$savePath" "$thumbPath")"
             if [[ $job == "-ta" ]]; then
                 current_year=$(date +%Y)
                 for year in ${yearList}; do
-                    populate_bitString "$target_directory" "$year"
                     if [[ "$year" == "$current_year" ]]; then
-                        format_dirName "$target_directory" "$current_year" "YTD"
+                        qPackIt "$target_directory" "$torrentDataPath" "$lnOrCp" "YTD" "$current_year"
                     else
-                        format_dirName "$target_directory" "$year"
-                    fi
-                    echo mkdir "$torrentDataPath/$dirName"
-                    if [[ ! -z "$cover" ]]; then 
-                        if [[ -z "$thumbPath" ]]; then
-                            convert "$target_directory/$cover" -resize 600x600 "$savePath/cover-$(basename "$(pwd)")-1-1.jpg"
-                        else
-                            convert "$target_directory/$cover" -resize 600x600 "$thumbPath/cover-$(basename "$(pwd)")-1-1.jpg"
-                        fi
-                    fi
-                    if [[ $lnOrCp == "1" ]]; then
-                        if [[ -z "$cover" ]]; then
-                            echo ln "$target_directory/$cover" "$torrentDataPath/$dirName/"
-                        fi
-                        echo ln "$target_directory/*[${year}*" "$torrentDataPath/$dirName/"
-                    else
-                        if [[ -z "$cover" ]]; then
-                            echo cp "$target_directory/$cover" "$torrentDataPath/$dirName/"
-                        fi
-                        echo cp "$target_directory/*[${year}*" "$torrentDataPath/$dirName/"
+                        qPackIt "$target_directory" "$torrentDataPath" "$lnOrCp" "0" "$year"
                     fi
                 done
             else
-                echo "*** Packing up"
-                populate_bitString "$target_directory" "$yearList"
-                format_dirName "$target_directory" "$yearList"
-                mkdir "$torrentDataPath/$dirName"
-                if [[ $lnOrCp == "1" ]]; then
-                    if [[ ! -z "$cover" ]]; then 
-                        ln "$target_directory/$cover" "$torrentDataPath/$dirName/"
-                    fi
-                    for year in $yearList; do
-                        ln "$target_directory"/*[${year}* "$torrentDataPath/$dirName/"
-                    done
-                else
-                    if [[ ! -z "$cover" ]]; then 
-                        cp "$target_directory/$cover" "$torrentDataPath/$dirName/"
-                    fi
-                    for year in $yearList; do
-                        cp "$target_directory"/*[${year}* "$torrentDataPath/$dirName/"
-                    done
-                fi
-                #echo "*** Making torrent for $dirName"
-                #create_torrent "$torrentDataPath/$dirName"
-                #echo "*** Sending $dirName data to seedbox"
-                #sync_to "$torrentDataPath/$dirName"
-                #if [[ $seed_watchPath != "" ]]; then # sync the .torrent file to the user's seedbox's client's watch directory
-                #    echo "*** Sending torrent file to seedbox"
-                #    sync_to "$file" "1"
-                #fi
-
-                target="$(realpath "$torrentDataPath"/"$dirName")"
-                file=$(create_torrent "$target" "$dirName")
-                file=$(echo $file | tail -n 1)
-                # Check if the function succeeded and use the result
-                if [[ $? -eq 0 ]]; then
-                    echo "* Saved $file"
-                    if [[ $local_watchPath != "" ]]; then # save another copy to the local watch path
-                        cp "$file" "$local_watchPath"
-                        echo "* Added .torrent to local client via watch path"
-                    fi
-                else
-                    echo "Error creating torrent." 1>&2
-                fi
-                if [[ $seedUser != ""  ]]; then # sync the torrent data to the user's seedbox
-                    echo "* Sending torrent data to seedbox"
-                    sync_to "$torrentDataPath/$dirName" > /dev/tty
-                    if [[ $seed_watchPath != "" ]]; then # sync the .torrent file to the user's seedbox's client's watch directory
-                        echo "* Adding to seedbox torrent client via watch path"
-                        sync_to "$file" "1" > /dev/tty
-                    fi
-                fi
+                qPackIt "$target_directory" "$torrentDataPath" "$lnOrCp" "0" "$yearList"
             fi
             ;;
+        "-o" )
+            #packOption="$2"
+# -o <pack_option>      : creates torrent(s) per option:
+#                           1) One YTD torrent, one torrent for prior years
+#                           2) One torrent for all years
+#                           3) One YTD torrent, one torrent for each prior year
+            dirName=""
+            thumbFile="$(make_thumb "$target_directory" "$savePath" "$thumbPath")"
+            current_year=$(date +%Y)
+            case "$packOption" in
+                "1" )
+                    # check if target directory has has current year and make YTD if so                    
+                    if [[ ! -z "$(echo ${!year_filecount[@]} | grep "$current_year")" ]]; then
+                        echo "* Creating YTD torrent"
+                        qPackIt "$target_directory" "$torrentDataPath" "$lnOrCp" "YTD" "$current_year"
+                    fi
+
+                    yearList="$(echo ${!year_filecount[@]} | sed -E "s/$current_year//")"
+                    echo "* Creating archive torrent for $yearList"
+                    qPackIt "$target_directory" "$torrentDataPath" "$lnOrCp" "0" "$yearList"
+                    ;;
+                "2" )
+                    # Make one torrent for all years - qPackIt <target_directory> <torrentDataPath> <lnOrCp>
+                    qPackIt "$target_directory" "$torrentDataPath" "$lnOrCp" 
+                    ;;
+                "3" )
+                    # Make one YTD torrent, one torrent for each prior year
+                    # check if target directory has has current year and make YTD if so                    
+                    if [[ ! -z "$(echo ${!year_filecount[@]} | grep "$current_year")" ]]; then
+                        echo "* Creating YTD torrent"
+                        qPackIt "$target_directory" "$torrentDataPath" "$lnOrCp" "YTD" "$current_year"
+                    fi
+
+                    for year in "$(echo ${!year_filecount[@]} | sed -E "s/$current_year//")"; do
+                        echo "* Creating archive torrent for $year"
+                        qPackIt "$target_directory" "$torrentDataPath" "$lnOrCp" "0" "$year"
+                    done
+                    ;;
+                * )
+                    echo "$packOption is unknown for -o"  >  /dev/tty
+                    ;;
+            esac
+            ;;
         * )
-            echo qWrapper.sh: Internal error processing "$job" in execute_job\(\) /devv/tty
-            echo tell Q to stop padding his uploads and make this work! /dev/tty
+            echo qWrapper.sh: Internal error processing "$job" in execute_job\(\) > /dev/tty
             ;;
     esac
 }
