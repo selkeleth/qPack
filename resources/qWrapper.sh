@@ -396,9 +396,11 @@ execute_job() {
         "-t1" | "-ta" ) 
             dirName=""
             thumbFile="$(make_thumb "$target_directory" "$savePath" "$thumbPath")"
+            echo "* Will pack years ${yearList}"
             if [[ $job == "-ta" ]]; then
                 current_year=$(date +%Y)
                 for year in ${yearList}; do
+                    echo "* Packing year $year"
                     if [[ "$year" == "$current_year" ]]; then
                         qPackIt "$target_directory" "$torrentDataPath" "$lnOrCp" "YTD" "$current_year"
                     else
@@ -410,7 +412,6 @@ execute_job() {
             fi
             ;;
         "-o" )
-            #packOption="$2"
 # -o <pack_option>      : creates torrent(s) per option:
 #                           1) One YTD torrent, one torrent for prior years
 #                           2) One torrent for all years
