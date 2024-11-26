@@ -77,7 +77,6 @@ create_torrent() {
         titleOption="-n '$outputTitle'"
     fi
     local title_flag=""
-    local piece_length
 
     if [[ -z "$savePath" ]]; then
         savePath=$(get_config_value "Local" "savePath")
@@ -115,8 +114,10 @@ create_torrent() {
         exit 1
     fi
 
+    local piece_length=$(get_piece_length "$target")
+
     # Create the torrent
-    mktorrent -a "$announceUrl" -p -s "Unwalled" -o "$outputFile" "$target" > /dev/null
+    mktorrent -l "$piece_length" -a "$announceUrl" -p -s "Unwalled" -o "$outputFile" "$target" > /dev/null
    
     if [[ $? -eq 0 ]]; then
         echo "$outputFile"

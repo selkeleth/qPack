@@ -197,20 +197,22 @@ get_piece_length() {
         echo 16   # 64 k
     elif (( size_kb <= 213000 )); then
         echo 17   # 128
-    elif (( size_kb <= 444000 )); then
+    elif (( size_kb <= 288000 )); then
         echo 18   # 256
-    elif (( size_kb <= 922000 )); then
+    elif (( size_kb <= 444000 )); then
         echo 19   # 512
-    elif (( size_kb <= 1870000 )); then
+    elif (( size_kb <= 922000 )); then
         echo 20   # 1 MB
-    elif (( size_kb <= 3880000 )); then
+    elif (( size_kb <= 1870000 )); then
         echo 21   # 2
-    elif (( size_kb <= 6700000 )); then
+    elif (( size_kb <= 3880000 )); then
         echo 22   # 4
-    elif (( size_kb <= 13900000 )); then
+    elif (( size_kb <= 6700000 )); then
         echo 23   # 8
+    elif (( size_kb <= 12300000 )); then
+        echo 24   # 32
     else
-        echo 24   # 16
+        echo 25   # 64
     fi
 }
 
