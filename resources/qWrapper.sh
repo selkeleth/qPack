@@ -376,6 +376,7 @@ execute_job() {
             "$scriptDir/printOptionsReport.sh" "$target_directory"
             ;;
         "--thumb" ) # make thumbnail for directory
+            # Change if requested
             savePath="$2"
             thumbPath="$3"
             ;;

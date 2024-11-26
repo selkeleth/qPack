@@ -18,7 +18,7 @@ declare -A templateVars=(
 declare -A templateFmts=(
     ["d"]="{podcastName} - {yyyymmdd} - {episodeTitle} [{YEAR}/MP3-{bitString}].mp3"
     ["d_e"]="{podcastName} - {yyyymmdd} - {Ennn}-{episodeTitle} [{YEAR}/MP3-{bitString}].mp3"
-    ["d_ssee"]="{podcastName} - {yyyymmdd} - S{Snn}E{Enn}-{episodeTitle} [{YEAR}/MP3-{bisString}].mp3"
+    ["d_ssee"]="{podcastName} - {yyyymmdd} - S{Snn}E{Enn}-{episodeTitle} [{YEAR}/MP3-{bitString}].mp3"
     ["ssee"]="{podcastName} - S{Snn}E{Enn} - {episodeTitle} [{YEAR}/MP3-{bitString}].mp3"
     ["sseee"]="{podcastName} - S{Snn}E{Ennn} - {episodeTitle} [{YEAR}/MP3-{bitString}].mp3"
 )
