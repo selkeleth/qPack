@@ -168,10 +168,10 @@ time_report() {
     secs="$1"
 
     if [[ $secs -gt 60 ]]; then
-        mins=$(($secs / 60))
+        mins=$(( $secs / 60 ))
         if [[ $min  -gt 60 ]]; then
-            hours=$(($mins / 60))
-            mins=$(($mins % 60))
+            hours=$(( $mins / 60 ))
+            mins=$(( $mins % 60 ))
             echo "Total time: $hours:$mins:$secs" > /dev/tty
         else
             echo "Total time: $mins:$secs" > /dev/tty
