@@ -122,6 +122,9 @@ rename_dir() {
         "d_e" )
             templateString="{podcastName} - {yyyymmdd} - {Ennn}-{episodeTitle} [{YEAR}/MP3-{bitString}].mp3"
             ;;
+        "d_s" )
+            templateString="{podcastName} - {yyyymmdd} - S{Snn}-{episodeTitle} [{YEAR}/MP3-{bitString}].mp3"
+            ;;
         "d_ssee" )
             templateString="{podcastName} - {yyyymmdd} - S{Snn}E{Enn}-{episodeTitle} [{YEAR}/MP3-{bitString}].mp3"
             ;;

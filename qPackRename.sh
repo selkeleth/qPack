@@ -18,14 +18,15 @@ declare -A templateVars=(
 declare -A templateFmts=(
     ["d"]="{podcastName} - {yyyymmdd} - {episodeTitle} [{YEAR}/MP3-{bitString}].mp3"
     ["d_e"]="{podcastName} - {yyyymmdd} - {Ennn}-{episodeTitle} [{YEAR}/MP3-{bitString}].mp3"
+    ["d_s"]="{podcastName} - {yyyymmdd} - S{Snn}-{episodeTitle} [{YEAR}/MP3-{bitString}].mp3"
     ["d_ssee"]="{podcastName} - {yyyymmdd} - S{Snn}E{Enn}-{episodeTitle} [{YEAR}/MP3-{bitString}].mp3"
     ["ssee"]="{podcastName} - S{Snn}E{Enn} - {episodeTitle} [{YEAR}/MP3-{bitString}].mp3"
     ["sseee"]="{podcastName} - S{Snn}E{Ennn} - {episodeTitle} [{YEAR}/MP3-{bitString}].mp3"
 )
 
 # Indexed array of keys from templateFmts for numerical indexing
-#              0    1      2       3       4
-templateKeys=("d" "d_e" "d_ssee" "ssee" "sseee")
+#              0    1      2     3       4       5
+templateKeys=("d" "d_e" "d_s" "d_ssee" "ssee" "sseee")
 
 # ****************************************************************************
 # init_config() imports library functions and populates variables that qPack
