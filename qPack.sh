@@ -53,7 +53,9 @@ q               : Quit
 EOF
 }
 
-########################### read_next_job() ###########################
+
+
+########################### nextJob functions ###########################
 #
 #  This is the meat & potatoes of qPack.sh's implementation of qPack's
 #   overall function library. The idea here is to be able to run w/o
@@ -64,12 +66,16 @@ EOF
 #   with one set of CLI arguments per line and qPack.sh will iterative
 #   through that batch using read_next_job for each set of arguments
 #
-read_next_job() {
-    read -p "Choose menu option [?] : " input
-    read -r i1 i2 i3 <<< "$input"
-    i1=${i1:=""}
-    i2=${i2:=""}
-    i3=${i3:=""}
+
+########################### set_nextJob() ###########################
+#
+#  Populate the nextJob variable with the appropriate value given
+#    arguments provided
+#
+set_nextJob() {
+    local i1="$1" # Action
+    local i2="$2" # Parameter / beginning year
+    local i3="$3" # Possible end of range
 
     case $i1 in
         "thumb" )
@@ -128,11 +134,23 @@ read_next_job() {
             qPackDone="1"
             ;;
         * )
-            show_menu > /dev/tty
+            nextJob="unknown"
             ;;
     esac
+}
 
-    #echo $nextJob
+########################### read_next_job() ###########################
+#
+#  Interactively read the next job to be executed
+
+read_next_job() {
+    read -p "Choose menu option [?] : " input
+    read -r i1 i2 i3 <<< "$input"
+    i1=${i1:=""}
+    i2=${i2:=""}
+    i3=${i3:=""}
+
+    set_nextJob "$i1" "$i2" "$i3"
 }
 
 # *****************************
@@ -262,7 +280,11 @@ declare -g qPackDone=0
 while [[ $qPackDone == 0 ]]; do
     read_next_job > /dev/tty
     if [[ ! -z "$nextJob" ]]; then
-        execute_job "$sourceDir" "$nextJob"
+        if [[ "$nextJob" == "unknown" ]]; then
+            show_menu > /dev/tty
+        else
+            execute_job "$sourceDir" "$nextJob"
+        fi
         nextJob=""
     fi
 done
