@@ -400,7 +400,7 @@ execute_job() {
             thumbFile="$(make_thumb "$target_directory" "$savePath" "$thumbPath")"
             echo "* Will pack years ${yearList}"
             if [[ $job == "-ta" ]]; then
-                current_year=$(date +%Y)
+                current_year="$(date +%Y)"
                 for year in ${yearList}; do
                     echo "* Packing year $year"
                     if [[ "$year" == "$current_year" ]]; then
@@ -420,7 +420,7 @@ execute_job() {
 #                           3) One YTD torrent, one torrent for each prior year
             dirName=""
             thumbFile="$(make_thumb "$target_directory" "$savePath" "$thumbPath")"
-            current_year=$(date +%Y)
+            current_year="$(date +%Y)"
             case "$packOption" in
                 "1" )
                     # check if target directory has has current year and make YTD if so                    

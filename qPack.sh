@@ -35,6 +35,7 @@ show_menu() {
     cat << EOF
 
 Select an option:
+r               : Launch rename tool to format filenames
 thumb           : Save a thumbnail for the working directory
 p               : Print a torrent options report for "o <#>"
 o <#>           : Pack per option #
@@ -48,12 +49,67 @@ ta [y1] [y2]    : Pack a separate torrent for each year
                     This will create a "YTD" torrent for the current year.
                     YTD torrent directory and torrent title will have "up to
                     mm.dd" for the most recent episode of the current year.
+cd              : Change the working directory  
 q               : Quit
 ?               : Print this menu
 EOF
 }
 
+initSourceDir() {
+    # Begin interactive mode as needed
+    if [[ -z "$sourceDir" ]]; then # we must get it populated interactively
+        sourceDir="$(read_relative_path "Data source directory" "$mediaPath" "1" | tail -n 1)"
+    fi
 
+    # If the podcast name wasn't specified by an argument
+    #   pick a default name from the source directory
+    if [[ -z "$podcastName" ]]; then
+        podcastName="$(get_ntfs_safe "$(basename "$sourceDir")")"
+    fi
+
+    if [[ ! -n $errorLog ]]; then
+        echo "* Setting error log"
+        init_error_log "$podcastName"
+        errorLog="$(echo $errorLog | tail -n 1)"
+    fi
+    if [[ -z $errorLog ]]; then
+        echo "Error initializing error log for $podcastName."
+        exit 1
+    fi
+
+    filecount="$(ls "$sourceDir"/*mp3 | wc -l)"
+    if [[ $filecount -eq 0 ]]; then
+        echo "* No mp3's found in $sourceDir"
+        exit 1
+    fi
+
+    echo "* Screening directory for unformatted filenames"
+    unformatted="$(screen_directory_names "$sourceDir" | tail -n 1)"
+    if [[ $unformatted -gt 0 ]]; then
+        cat > /dev/tty << EOF
+
+******** Warning: Couldn't parse the $unformatted filenames above ********
+
+These files must have qPack-friendly names for qPack tools.
+qPackRename.sh is designed to give {title}.mp3 files useful names.
+
+EOF
+        if [[ "$filecount" == "$unformatted" ]]; then # there aren't any formatted files to pack
+            echo "******** Renaming can still only done with qPackRename.sh ********"
+            echo "******** Run qPack.sh on the same directory once complete ********"
+            echo
+            exit 1
+        fi
+        echo You may proceed if you want qPack to ignore the listed files.
+        read -p "Would you like to continue? [Yn] : " yn
+        if [[ $yn == "n" || $yn == "N" ]]; then
+            exit 0
+        fi
+    fi
+
+    echo "* Examining mp3 filenames for release years and bitrates sourced from mediainfo"
+    populate_year_arrays "$sourceDir"
+}
 
 ########################### nextJob functions ###########################
 #
@@ -129,6 +185,13 @@ set_nextJob() {
                 fi
             fi
             ;;
+        cd )
+            # Set the sourceDir to the remainder of arguments.
+            # initSourceDir will prompt interactively if this is blank
+            sourceDir="$(echo "$full_command" | cut -d' ' -f2-)"
+            initSourceDir
+            nextJob=""
+            ;;
         q | Q )
             nextJob=""
             qPackDone="1"
@@ -144,6 +207,7 @@ set_nextJob() {
 #  Interactively read the next job to be executed
 
 read_next_job() {
+    echo "Source directory: $sourceDir"
     read -p "Choose menu option [?] : " input
     read -r i1 i2 i3 <<< "$input"
     i1=${i1:=""}
@@ -218,60 +282,7 @@ echo "* qPack Initializing..."
 init_config
 process_args "$@"
 echo \* Args processed
-
-# Begin interactive mode as needed
-if [[ -z "$sourceDir" ]]; then # we must get it populated interactively
-    sourceDir="$(read_relative_path "Data source directory" "$torrentDataPath" "1" | tail -n 1)"
-fi
-
-# If the podcast name wasn't specified by an argument
-#   pick a default name from the source directory
-if [[ -z "$podcastName" ]]; then
-    podcastName="$(get_ntfs_safe "$(basename "$sourceDir")")"
-fi
-
-if [[ ! -n $errorLog ]]; then
-    echo "* Setting error log"
-    init_error_log "$podcastName"
-    errorLog="$(echo $errorLog | tail -n 1)"
-fi
-if [[ -z $errorLog ]]; then
-    echo "Error initializing error log for $podcastName."
-    exit 1
-fi
-
-filecount="$(ls "$sourceDir"/*mp3 | wc -l)"
-if [[ $filecount -eq 0 ]]; then
-    echo "* No mp3's found in $sourceDir"
-    exit 1
-fi
-
-echo "* Screening directory for unformatted filenames"
-unformatted="$(screen_directory_names "$sourceDir" | tail -n 1)"
-if [[ $unformatted -gt 0 ]]; then
-    cat > /dev/tty << EOF
-
-******** Warning: Couldn't parse the $unformatted filenames above ********
-
-These files must have qPack-friendly names for qPack tools.
-qPackRename.sh is designed to give {title}.mp3 files useful names.
-
-EOF
-    if [[ "$filecount" == "$unformatted" ]]; then # there aren't any formatted files to pack
-        echo "******** Renaming can still only done with qPackRename.sh ********"
-        echo "******** Run qPack.sh on the same directory once complete ********"
-        echo
-        exit 1
-    fi
-    echo You may proceed if you want qPack to ignore the listed files.
-    read -p "Would you like to continue? [Yn] : " yn
-    if [[ $yn == "n" || $yn == "N" ]]; then
-        exit 0
-    fi
-fi
-
-echo "* Examining mp3 filenames for release years and bitrates sourced from mediainfo"
-populate_year_arrays "$sourceDir"
+initSourceDir
 
 echo "* Done."
 echo

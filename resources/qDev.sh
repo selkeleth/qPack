@@ -89,7 +89,7 @@ read_relative_path() {
             fi            
             popd > /dev/null || return
         fi
-        if [[ -d "$input" ]]; then
+        if [[ -d "$input" && "$input" != "$torrentDataPath" ]]; then
             echo "$input"
             exit 0
         fi

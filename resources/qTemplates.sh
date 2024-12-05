@@ -25,7 +25,7 @@ get_Ennn() { # The episode numbers in 3 digits, e.g. 001
 get_podcastName() {
     # This extraction method avoids the bug in many cut version for international characters
     name="$(mediainfo "$file" | grep "Album  " | awk '{print substr($0, 44)}' | sed 's/(subscriber edition)//' | sed 's/^[ \t]*//;s/[ \t]*$//')"
-    echo "$name" | xargs
+    echo "$name" | xargs -0
 }
 
 get_episodeTitle() {

@@ -1,5 +1,3 @@
-This is pre-release staging of qPack code. Use with extreme caution! Features may be under development at any time. 
-
 qPack is a toolset to manage podcast files on disk that begin with {title}.mp3, particularly Audiobookshelf mp3's, and make them into manageable, shareable archives. It is intended for Linux users who are comfortable on the CLI but has a TUI, an analysis report, and common archiving options available from the main menu so technically very little CLI knowledge is required. 
 
 qPack has two major tools - qPackRename.sh which is able to directly rename your podcasts named {title}.mp3 into something more useable, like {podcast name} - {release date} - {title} [{year}_MP3/{bit rate}] which also means you can copy and paste the name into the Title _and manually changing the _ to a /_. qPack assumes that your podcast directory has the name that's best for sharing, and the file name as the title that's best for sharing, and it gets the rest of the information it needs from the file's metadata. If you want to make another pack from the same directory at a later date then just run it again and it will skip the files that already have the "[{year}" in the name.
@@ -60,7 +58,6 @@ Next up:
 - Implement quality of life options, such as creating the directories only so
     that manual tweaks such as changing directory names won't have to be
     repeated on the seedbox as well as making new .torrent files.
-- Allow changing of the mediaDir from the qPack menu
 - Have the "nextJob" loop create a job queue instead of executing on each
     selection.
 - Add a CLI option to read a file with a list of CLI parameters that amount
@@ -69,5 +66,5 @@ Next up:
 - Explore options for automated description generation using qTemplates, an
     API integration, metadata, etc. 
 - Track first/last episode and other information to add template fields
-- Templates for directory names, allow first/last episode in annual packs to
-    automatically create
+- Templates for directory names, allow first/last episode in packs to
+    to be included in directory and torrent names
