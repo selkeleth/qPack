@@ -2,15 +2,13 @@ qPack is a toolset to manage podcast files on disk that begin with {title}.mp3, 
 
 qPack has two major tools - qPackRename.sh which is able to directly rename your podcasts named {title}.mp3 into something more useable, like {podcast name} - {release date} - {title} [{year}_MP3/{bit rate}] which also means you can copy and paste the name into the Title _and manually changing the _ to a /_. qPack assumes that your podcast directory has the name that's best for sharing, and the file name as the title that's best for sharing, and it gets the rest of the information it needs from the file's metadata. If you want to make another pack from the same directory at a later date then just run it again and it will skip the files that already have the "[{year}" in the name.
 
-**qPackRename.sh does not have an undo. Use --dry-run until you are sure you want what you see!**
+** Rename options do not have an undo. Use --dry-run until you are sure you want what you see!**
 
 qPack.sh has various options for making torrent data directories using those as source directories and the renamed files, hardlinking (or copying) the cover and files per the user's specifications, syncing it up to a seedbox if the user has one, and putting the .torrent in the user's watch directories if desired. 
 
 Currently staged:
-- qPack.sh's in a less than aspiration form is there. Its current state is that
-    it can be run with no parameters but a target directory. Use ? to see
-    available options and commands such as "o 1" to start jobs. 
-    The overview with the functions I am working on:
+- qPack.sh's current state is taking form in the interactive portions described
+    below. Work remains to be done on invoking in non-interactive modes.
 - qPack.sh: A script that works on a target directory with files that have the
     metadata in the filenames that templates look up from the file. Instead of
     automatically targeting the full directory, it provides options for annual
@@ -52,8 +50,6 @@ qPack has been designed so that main directory .sh files set up an environment a
 
 
 Next up:
-- Implement more functionality into qPack, such as renaming files or offering
-    to run qPackConfig if no config file exists. 
 - Implement CLI parameters for "nextJob" options for automated usage
 - Implement quality of life options, such as creating the directories only so
     that manual tweaks such as changing directory names won't have to be

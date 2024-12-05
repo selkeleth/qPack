@@ -84,7 +84,7 @@ Options:
                                used without renaming them. ALWAYS TEST FIRST
     -t, --podcast-title     : Set the podcast title (default is <target
                                directory name>)
-    -d, --date-name         : Template 1 with no season/episode lookups. Fast.
+    -d, --date-name         : Template 0 with no season/episode lookups. Fast.
     -f #                    : Format according to template # from samples
     --show-samples          : Pick out random files and show sample output with
                                all templates defined in the script (hint, hint)

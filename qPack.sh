@@ -35,7 +35,8 @@ show_menu() {
     cat << EOF
 
 Select an option:
-r               : Launch rename tool to format filenames
+rh              : Print a summary of the rename tool's options
+r <options>     : Run the rename tool to format the filenames
 thumb           : Save a thumbnail for the working directory
 p               : Print a torrent options report for "o <#>"
 o <#>           : Pack per option #
@@ -49,7 +50,8 @@ ta [y1] [y2]    : Pack a separate torrent for each year
                     This will create a "YTD" torrent for the current year.
                     YTD torrent directory and torrent title will have "up to
                     mm.dd" for the most recent episode of the current year.
-cd              : Change the working directory  
+cd [dir]        : Change the working directory to [dir] to optional [dir].
+                    Will prompt with tab-completion if [dir] is not specified.
 q               : Quit
 ?               : Print this menu
 EOF
@@ -84,21 +86,25 @@ initSourceDir() {
     fi
 
     echo "* Screening directory for unformatted filenames"
+    echo "****"
     unformatted="$(screen_directory_names "$sourceDir" | tail -n 1)"
     if [[ $unformatted -gt 0 ]]; then
         cat > /dev/tty << EOF
 
 ******** Warning: Couldn't parse the $unformatted filenames above ********
 
-These files must have qPack-friendly names for qPack tools.
-qPackRename.sh is designed to give {title}.mp3 files useful names.
+These files will not be included in packs until qPack renames them with a
+minimum of year and bitstring. You can use qPackRename.sh as a standalone tool
+or the r command from qPack to rename them. 
+
+Audiobookshelf's default behavior is to watch the files and update its
+database with any filename changes so that renamed files will not go missing.
 
 EOF
         if [[ "$filecount" == "$unformatted" ]]; then # there aren't any formatted files to pack
-            echo "******** Renaming can still only done with qPackRename.sh ********"
-            echo "******** Run qPack.sh on the same directory once complete ********"
+            echo "******** You must allow qPack to rename files for it to pack them ********"
             echo
-            exit 1
+            #exit 1
         fi
         echo You may proceed if you want qPack to ignore the listed files.
         read -p "Would you like to continue? [Yn] : " yn
@@ -134,6 +140,32 @@ set_nextJob() {
     local i3="$3" # Possible end of range
 
     case $i1 in
+        r )
+            shift
+            local renameParams="$*"
+            local renameSh="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"/qPackRename.sh
+            if [[ -f "$renameSh" ]]; then 
+                $renameSh "$sourceDir" $renameParams
+                initSourceDir # to update arrays with filename metadata
+            else
+                echo "ERROR: qPackRename.sh not found" 1>&2
+            fi
+            nextJob=""
+            ;;
+        rh ) cat << EOF
+
+Parameters for the r command:
+    --dry-run               : Show new filenames with the options tested
+                               without renaming them. ALWAYS TEST FIRST
+    -t, --podcast-title     : Set the podcast title (default is <target
+                               directory name>)
+    -d, --date-name         : Template 0 with no season/episode lookups. Fast.
+    -f #                    : Format according to template # from samples
+    --show-samples          : Pick out random files and show sample output with
+                               all templates defined in the script (hint, hint)
+
+EOF
+        ;;
         "thumb" )
             nextJob="--thumb "$savePath" "$thumbPath""
             ;;
@@ -188,7 +220,18 @@ set_nextJob() {
         cd )
             # Set the sourceDir to the remainder of arguments.
             # initSourceDir will prompt interactively if this is blank
-            sourceDir="$(echo "$full_command" | cut -d' ' -f2-)"
+            shift
+            sourceDir="$*"
+            if [[ ! -z  "$sourceDir" ]]; then
+                if [[ -d "$sourceDir" ]]; then
+                    sourceDir="$(cd "$sourceDir" && pwd)"
+                elif [[ -d "$mediaPath" && -d "$(realpath "$mediaPath/$sourceDir")" ]]; then
+                    sourceDir="$(realpath "$mediaPath/$sourceDir")"
+                else
+                    sourceDir=""
+                fi
+            fi
+            echo sourceDir $sourceDir
             initSourceDir
             nextJob=""
             ;;

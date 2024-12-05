@@ -14,11 +14,16 @@ set -e
 get_config_value() {
     local section=$1
     local key=$2
+    if [[ ! -f "$CONFIG_FILE" ]]; then
+        echo "qWrapper: No config file found at $CONFIG_FILE. Running qPackConfig." 1>&2
+        local qPackConfigSh="$(dirname "$(realpath "$0")")"/qPackConfig.sh
+        $qPackConfigSh
+    fi
     if [[ -f "$CONFIG_FILE" ]]; then
         # output the value, removing any whitespace
         awk -F '=' '/\['"$section"'\]/{a=1} a==1&&$1~/'"$key"'/{print $2; exit}' "$CONFIG_FILE" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//'
     else
-        echo "qWrapper: No config file found at $CONFIG_FILE. Please run qPackConfig." 1>&2
+        echo "qWrapper: No config file found at $CONFIG_FILE. Please complete qPackConfig." 1>&2
         exit 1
     fi
 }

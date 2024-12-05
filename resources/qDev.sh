@@ -83,13 +83,13 @@ read_relative_path() {
             input=$(echo "$input" | sed 's/^"//;s/"$//') 
             if [[ "$( is_absolute_path "$input" )" == "1" ]]; then
                 input="$( cd "$input" && pwd )"
-            elif [[ -d "$(realpath "$torrentDataPath/$input")" ]]; then # it is relative to the pushd $startDir
-                echo input=$(cd "$(realpath "$torrentDataPath/$input")" && pwd)
-                input=$(cd "$(realpath "$torrentDataPath/$input")" && pwd)
+            elif [[ -d "$(realpath "$startDir/$input")" ]]; then # it is relative to the pushd $startDir
+                echo input=$(cd "$(realpath "$startDir/$input")" && pwd)
+                input=$(cd "$(realpath "$startDir/$input")" && pwd)
             fi            
             popd > /dev/null || return
         fi
-        if [[ -d "$input" && "$input" != "$torrentDataPath" ]]; then
+        if [[ -d "$input" && "$input" != "$startDir" ]]; then
             echo "$input"
             exit 0
         fi

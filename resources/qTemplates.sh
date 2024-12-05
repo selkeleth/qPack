@@ -141,7 +141,7 @@ rename_dir() {
             echo qPack can rename according to a number of pre-defined templates.
             echo Specify from one of the following options:
             show_samples "$mediaDir" "$podcastName"
-            exit 1
+            exit 0
             ;;
     esac 
 
