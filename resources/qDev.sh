@@ -162,6 +162,34 @@ choice_1_2() {
     echo $input
 }
 
+# Function to resolve the full path of the script
+resolve_script_path() {
+    local script="$1"
+    local script_dir
+
+    # If invoked without a path component, search the PATH
+    if [[ "$script" != */* ]]; then
+        # Use the command 'which' to find the full path in $PATH
+        script=$(which "$script") || return 1
+    fi
+
+    # Continue resolving to ensure we follow any symlinks
+    while [ -h "$script" ]; do
+        script_dir=$(dirname -- "$script")
+        # Use readlink to read the target of the symlink
+        script=$(readlink -- "$script")
+        
+        # If script was a relative symlink, resolve it relative to the directory of the symlink
+        [[ "$script" != /* ]] && script="$script_dir/$script"
+    done
+
+    # Return the absolute path
+    script_dir=$(dirname -- "$script")
+    script=$(cd -P -- "$script_dir" && pwd -P)/$(basename -- "$script")
+
+    echo "$script"
+}
+
 # Prints a time summary (silent if < 10 seconds)
 # Usage: time_report <seconds>
 time_report() {
@@ -169,6 +197,7 @@ time_report() {
 
     if [[ $secs -gt 60 ]]; then
         mins=$(( $secs / 60 ))
+        secs=$(( $mins & 60 ))
         if [[ $min  -gt 60 ]]; then
             hours=$(( $mins / 60 ))
             mins=$(( $mins % 60 ))

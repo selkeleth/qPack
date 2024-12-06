@@ -19,7 +19,10 @@ export bitPercentage
 declare -g nextJob
 export nextJob
 
-# Function to display help message
+# vanilla array for job queue
+declare -a jobQueue
+
+# Function to display help message for running qPack.sh from the CLI
 show_help() {
     cat << EOF
 
@@ -31,14 +34,23 @@ Options:
 EOF
 }
 
+# Function to display the help message once within qPack.sh
 show_menu() {
     cat << EOF
 
-Select an option:
+Tools and basics-
 rh              : Print a summary of the rename tool's options
 r <options>     : Run the rename tool to format the filenames
 thumb           : Save a thumbnail for the working directory
 p               : Print a torrent options report for "o <#>"
+cd [dir]        : Change the working directory to [dir] to optional [dir]
+                    Will prompt with tab-completion if [dir] is not specified
+q               : Quit
+?               : Print this menu
+
+Packing and torrenting- jobs will be placed in a queue until the queue is run
+pq              : Print the queue
+run             : Run the queue, packing list of torrents specified
 o <#>           : Pack per option #
                     1) One YTD torrent, one torrent for prior years
                     2) One torrent for all years
@@ -50,10 +62,6 @@ ta [y1] [y2]    : Pack a separate torrent for each year
                     This will create a "YTD" torrent for the current year.
                     YTD torrent directory and torrent title will have "up to
                     mm.dd" for the most recent episode of the current year.
-cd [dir]        : Change the working directory to [dir] to optional [dir].
-                    Will prompt with tab-completion if [dir] is not specified.
-q               : Quit
-?               : Print this menu
 EOF
 }
 
@@ -174,6 +182,18 @@ EOF
             "$resourceDir"/printOptionReport.sh "$sourceDir"
             nextJob=""
             ;;
+        pq )
+            local qJob
+            local qDir
+            echo "Job queue:"
+            for job in "${jobQueue[@]}"; do
+                IFS='|' read -r qJob qDir <<< "$job"
+                echo "'$qJob' in '$qDir'"
+            done
+            ;;
+        run )
+            nextJob="run"
+            ;;
         o )
            packOption="$i2"
             if [[ ! -z "$packOption" ]]; then
@@ -221,6 +241,7 @@ EOF
             # Set the sourceDir to the remainder of arguments.
             # initSourceDir will prompt interactively if this is blank
             shift
+            year_filecount=()
             sourceDir="$*"
             if [[ ! -z  "$sourceDir" ]]; then
                 if [[ -d "$sourceDir" ]]; then
@@ -266,7 +287,10 @@ read_next_job() {
 # 3. Populate variables from the environment
 # 4. Validate required information is populated
 init_config() {
-    scriptDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"/resources
+    local scriptPath="$(realpath "$0")"
+    local scriptDir="$(dirname "$script_path")/resources"
+    #scriptDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"/resources
+    echo $scriptDir
     source "${scriptDir}/qWrapper.sh"
 
     declare -g savePath=$(get_config_value "Local" "savePath")
@@ -336,8 +360,22 @@ while [[ $qPackDone == 0 ]]; do
     if [[ ! -z "$nextJob" ]]; then
         if [[ "$nextJob" == "unknown" ]]; then
             show_menu > /dev/tty
+        elif [[ "$nextJob" == "run" ]]; then
+            # Execute all queued jobs
+            for job in "${jobQueue[@]}"; do
+                # Extract sourceDir and job string
+                IFS='|' read -r sourceDir jobString <<< "$job"
+                execute_job "$sourceDir" "$jobString"
+            done
+
+            # Clear the queue
+            jobQueue=()
         else
-            execute_job "$sourceDir" "$nextJob"
+            # Queue the job
+            echo "Queue addition: '$nextJob' in '$sourceDir'"
+            jobQueue+=("$sourceDir|$nextJob")
+        #else
+        #    execute_job "$sourceDir" "$nextJob"
         fi
         nextJob=""
     fi
