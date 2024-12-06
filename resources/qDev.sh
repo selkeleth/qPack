@@ -162,7 +162,12 @@ choice_1_2() {
     echo $input
 }
 
-# Function to resolve the full path of the script
+
+
+# Function to resolve the full path of the script, regardless of whether it was
+# invoked with a symlink and/or via $PATH
+#
+# Usage: scriptPath=$(resolve_script_path $0)
 resolve_script_path() {
     local script="$1"
     local script_dir

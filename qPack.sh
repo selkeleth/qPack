@@ -18,6 +18,8 @@ declare -g bitPercentage
 export bitPercentage
 declare -g nextJob
 export nextJob
+declare -g scriptDir
+export scriptDir
 
 # vanilla array for job queue
 declare -a jobQueue
@@ -63,6 +65,37 @@ ta [y1] [y2]    : Pack a separate torrent for each year
                     YTD torrent directory and torrent title will have "up to
                     mm.dd" for the most recent episode of the current year.
 EOF
+}
+
+# Function to resolve the full path of the script, regardless of whether it was
+# invoked with a symlink and/or via $PATH
+#
+# Usage: scriptPath=$(resolve_init_script_path $0)
+resolve_init_script_path() {
+    local script="$1"
+    local script_dir
+
+    # If invoked without a path component, search the PATH
+    if [[ "$script" != */* ]]; then
+        # Use the command 'which' to find the full path in $PATH
+        script=$(which "$script") || return 1
+    fi
+
+    # Continue resolving to ensure we follow any symlinks
+    while [ -h "$script" ]; do
+        script_dir=$(dirname -- "$script")
+        # Use readlink to read the target of the symlink
+        script=$(readlink -- "$script")
+        
+        # If script was a relative symlink, resolve it relative to the directory of the symlink
+        [[ "$script" != /* ]] && script="$script_dir/$script"
+    done
+
+    # Return the absolute path
+    script_dir=$(dirname -- "$script")
+    script=$(cd -P -- "$script_dir" && pwd -P)/$(basename -- "$script")
+
+    echo "$script_dir"
 }
 
 initSourceDir() {
@@ -151,12 +184,13 @@ set_nextJob() {
         r )
             shift
             local renameParams="$*"
-            local renameSh="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"/qPackRename.sh
+            scriptDir="$(resolve_init_script_path "$0")"
+            local renameSh="${scriptDir}/qPackRename.sh"
             if [[ -f "$renameSh" ]]; then 
                 $renameSh "$sourceDir" $renameParams
                 initSourceDir # to update arrays with filename metadata
             else
-                echo "ERROR: qPackRename.sh not found" 1>&2
+                echo "ERROR: qPackRename.sh not found at $renameSh" 1>&2
             fi
             nextJob=""
             ;;
@@ -178,8 +212,7 @@ EOF
             nextJob="--thumb "$savePath" "$thumbPath""
             ;;
         p )
-            local resourceDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"/resources
-            "$resourceDir"/printOptionReport.sh "$sourceDir"
+            "$scriptDir"/resources/printOptionReport.sh "$sourceDir"
             nextJob=""
             ;;
         pq )
@@ -287,11 +320,8 @@ read_next_job() {
 # 3. Populate variables from the environment
 # 4. Validate required information is populated
 init_config() {
-    local scriptPath="$(realpath "$0")"
-    local scriptDir="$(dirname "$script_path")/resources"
-    #scriptDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"/resources
-    echo $scriptDir
-    source "${scriptDir}/qWrapper.sh"
+    scriptDir="$(resolve_init_script_path "$0")"
+    source "${scriptDir}/resources/qWrapper.sh"
 
     declare -g savePath=$(get_config_value "Local" "savePath")
     declare -g mediaPath=$(get_config_value "Local" "mediaPath")
@@ -356,6 +386,7 @@ echo
 
 declare -g qPackDone=0
 while [[ $qPackDone == 0 ]]; do
+    echo "scriptDir $scriptDir" > /dev/tty
     read_next_job > /dev/tty
     if [[ ! -z "$nextJob" ]]; then
         if [[ "$nextJob" == "unknown" ]]; then

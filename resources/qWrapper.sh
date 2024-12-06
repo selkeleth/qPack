@@ -1,10 +1,10 @@
 #!/bin/bash
 
 CONFIG_FILE="$HOME/.qPack_config"
-scriptDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${scriptDir}/qDev.sh"
-source "${scriptDir}/qTemplates.sh"
-source "${scriptDir}/qPackInfo.sh"
+#scriptDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${scriptDir}/resources/qDev.sh"
+source "${scriptDir}/resources/qTemplates.sh"
+source "${scriptDir}/resources/qPackInfo.sh"
 
 set -e
 

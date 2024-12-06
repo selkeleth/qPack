@@ -28,6 +28,38 @@ declare -A templateFmts=(
 #              0    1      2     3       4       5
 templateKeys=("d" "d_e" "d_s" "d_ssee" "ssee" "sseee")
 
+# Function to resolve the full path of the script, regardless of whether it was
+# invoked with a symlink and/or via $PATH
+#
+# Usage: scriptPath=$(resolve_init_script_path $0)
+resolve_init_script_path() {
+    local script="$1"
+    local script_dir
+
+    # If invoked without a path component, search the PATH
+    if [[ "$script" != */* ]]; then
+        # Use the command 'which' to find the full path in $PATH
+        script=$(which "$script") || return 1
+    fi
+
+    # Continue resolving to ensure we follow any symlinks
+    while [ -h "$script" ]; do
+        script_dir=$(dirname -- "$script")
+        # Use readlink to read the target of the symlink
+        script=$(readlink -- "$script")
+        
+        # If script was a relative symlink, resolve it relative to the directory of the symlink
+        [[ "$script" != /* ]] && script="$script_dir/$script"
+    done
+
+    # Return the absolute path
+    script_dir=$(dirname -- "$script")
+    script=$(cd -P -- "$script_dir" && pwd -P)/$(basename -- "$script")
+
+    echo "$script_dir"
+}
+
+
 # ****************************************************************************
 # init_config() imports library functions and populates variables that qPack
 #   uses as environment variables within. Each script serves as the primary
@@ -40,8 +72,8 @@ templateKeys=("d" "d_e" "d_s" "d_ssee" "ssee" "sseee")
 # 3. Populate variables from the environment
 # 4. Validate required information is populated
 init_config() {
-    scriptDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"/resources
-    source "${scriptDir}/qWrapper.sh"
+    scriptDir="$(resolve_init_script_path "$0")"
+    source "${scriptDir}/resources/qWrapper.sh"
 
     replacementChar=$(get_config_value "Local" "replacementChar")
     seriesTag=$(get_config_value "Tags" "seriesTag")
