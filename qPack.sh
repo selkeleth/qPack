@@ -188,7 +188,17 @@ set_nextJob() {
             local renameSh="${scriptDir}/qPackRename.sh"
             if [[ -f "$renameSh" ]]; then 
                 $renameSh "$sourceDir" $renameParams
-                initSourceDir # to update arrays with filename metadata
+                # We want to update the arrays with the new filename metadata.
+                # We don't want filename warnings on dry runs or samples.
+                local refresh=1
+                for param in $refresh_params; do
+                    if [[ "$param" == *"--show-samples"* || "$param" == *"--dry-run"* ]]; then
+                        refresh=0
+                    fi
+                done
+                if [[ refresh == 1 ]]; then
+                    initSourceDir # update arrays with filename metadata
+                fi
             else
                 echo "ERROR: qPackRename.sh not found at $renameSh" 1>&2
             fi
@@ -205,6 +215,11 @@ Parameters for the r command:
     -f #                    : Format according to template # from samples
     --show-samples          : Pick out random files and show sample output with
                                all templates defined in the script (hint, hint)
+
+Safe usage examples:
+r --show-samples
+r -d --dry-run
+r -f 2 --dry-run
 
 EOF
         ;;
@@ -337,6 +352,8 @@ init_config() {
     declare -g seed_watchPath=$(get_config_value "Seedbox" "watchPath")
 }
 
+
+# Command line arguments when qPack.sh is invoked
 process_args() {
     sourceDir=""
     podcastName=""
