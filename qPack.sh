@@ -155,6 +155,11 @@ EOF
     fi
 
     echo "* Examining mp3 filenames for release years and bitrates sourced from mediainfo"
+    year_filecount=()
+    year_filesize=()
+    bitrate_totals=()
+    year_filesize=()
+    year_bitrate_counts=()
     populate_year_arrays "$sourceDir"
 }
 
@@ -190,13 +195,14 @@ set_nextJob() {
                 $renameSh "$sourceDir" $renameParams
                 # We want to update the arrays with the new filename metadata.
                 # We don't want filename warnings on dry runs or samples.
-                local refresh=1
+                local refresh="1"
                 for param in $refresh_params; do
                     if [[ "$param" == *"--show-samples"* || "$param" == *"--dry-run"* ]]; then
-                        refresh=0
+                        refresh="0"
                     fi
                 done
-                if [[ refresh == 1 ]]; then
+                if [[ "$refresh" == "1" ]]; then
+                    echo "* Updating sourceDir metadata"
                     initSourceDir # update arrays with filename metadata
                 fi
             else
@@ -289,7 +295,7 @@ EOF
             # Set the sourceDir to the remainder of arguments.
             # initSourceDir will prompt interactively if this is blank
             shift
-            year_filecount=()
+
             sourceDir="$*"
             if [[ ! -z  "$sourceDir" ]]; then
                 if [[ -d "$sourceDir" ]]; then
@@ -300,7 +306,6 @@ EOF
                     sourceDir=""
                 fi
             fi
-            echo sourceDir $sourceDir
             initSourceDir
             nextJob=""
             ;;

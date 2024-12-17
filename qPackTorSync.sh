@@ -36,8 +36,8 @@ EOF
 # 2. Populate variables from qPack configuration
 # 3. Populate variables from the environment
 init_config() {
-    scriptDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"/resources
-    source "${scriptDir}/qWrapper.sh"
+    scriptDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    source "${scriptDir}/resources/qWrapper.sh"
 
     savePath=$(get_config_value "Local" "savePath")
     torrentDataPath=$(get_config_value "Local" "torrentDataPath")

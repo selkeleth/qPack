@@ -200,7 +200,8 @@ format_dirName() {
 
     current_year=$(date +%Y)
 
-    if [[ -z "$upTo" || "$upTo" == "0" || ( "$current_year" != "$minYear" && "$current_year" != "$maxYear" ) ]]; then
+    # Checks that $upTo is not an empty string or set to "0"
+    if [[ -z "$upTo" || "$upTo" == "0" ]]; then
         local name="${podcastName} [${yearString}_MP3-${bitString}]"
     else # we should label the directory/torrent that it's the current year up to the latest episode's mm.dd
         # Extract dates in YYYY.MM.DD format
