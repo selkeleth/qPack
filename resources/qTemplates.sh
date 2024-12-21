@@ -15,11 +15,28 @@ get_Snn() { # The season numbers in 2 digits, e.g. 02
 }
 
 get_Enn() { # The episode numbers in 2 digits, e.g. 01
-    printf "%02d" "$(mediainfo "$file" | grep "$episodeTag" | cut -c 44-99 | xargs | sed 's/^0*//')"
+    num=$(mediainfo "$file" | grep "$episodeTag" | cut -c 44-99 | xargs | sed 's/^0*//')
+
+    # Check if the number is not an integer and adjust accordingly
+    if [[ $num == .* ]]; then
+        num="0"
+    fi
+
+    printf "%02d" "$num"
 } 
 
 get_Ennn() { # The episode numbers in 3 digits, e.g. 001
-    printf "%03d" "$(mediainfo "$file" | grep "$episodeTag" | cut -c 44-99 | xargs | sed 's/^0*//')"
+    # the following line usually works well but is getting an error: "printf: .1: invalid number"
+    # The leading 0's have to be stripped but it's a problem for 0.whatever episodes
+    #printf "%03d" "$(mediainfo "$file" | grep "$episodeTag" | cut -c 44-99 | xargs | sed 's/^0*//')"
+    num=$(mediainfo "$file" | grep "$episodeTag" | cut -c 44-99 | xargs | sed 's/^0*//')
+
+    # Check if the number is not an integer and adjust accordingly
+    if [[ $num == .* ]]; then
+        num="0"
+    fi
+
+    printf "%03d" "$num"
 } 
 
 get_podcastName() {

@@ -306,6 +306,7 @@ EOF
                     sourceDir=""
                 fi
             fi
+            podcastName=""
             initSourceDir
             nextJob=""
             ;;
