@@ -177,7 +177,7 @@ rename_dir() {
 
     for file in *.mp3; do
         # Check if already renamed
-        if [[ $file =~ ^${podcastName}.*\[.*\].mp3$ ]]; then
+        if [[ $file =~ ^.*\[.*\].mp3$ ]]; then
             skipCount=$((skipCount + 1))
             continue
         fi
@@ -246,7 +246,7 @@ show_samples() {
     fi
     
     echo "Picking a few random files for samples..."
-    mapfile -t mp3_files < <(ls *.mp3 | shuf -n 3)
+    mapfile -t mp3_files < <(ls *.mp3 | grep -v ' kbps]' | shuf -n 3)
     for file in "${mp3_files[@]}"; do
         echo "Sample output for file \"$file\" by template format # for -f # option:"
         for i in "${!templateKeys[@]}"; do
