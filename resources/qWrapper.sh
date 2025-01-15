@@ -157,7 +157,7 @@ sync_to() {
         exit 1
     fi
 
-    rsync -azh --info=progress2 "$target" $seedUser@$seedServer:$seedPath
+    rsync -av --progress -e "ssh -T -c aes128-ctr -o Compression=no -x" "$target" $seedUser@$seedServer:$seedPath
 }
 
 # Form a directory name from a provided source and the following year argument(s)
