@@ -177,7 +177,7 @@ rename_dir() {
 
     for file in *.mp3; do
         # Check if already renamed
-        if [[ $file =~ ^.*\[.*\].mp3$ ]]; then
+        if [[ $file =~ ^.*\[.*\kbps].mp3$ ]]; then
             skipCount=$((skipCount + 1))
             continue
         fi
